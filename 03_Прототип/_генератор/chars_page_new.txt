@@ -1,0 +1,138 @@
+SK_ORDER = ['eye', 'bone', 'grab', 'scare', 'helm', 'nose']
+SK_ORDER = ['nose', 'bone', 'grab', 'eye', 'scare', 'helm']
+# предметы снаряжения из магазина (+1 к проверкам навыка)
+GEAR = {'nose': 'Нюх-флакон', 'bone': 'Кастеты', 'grab': 'Крюк', 'eye': 'Подзорка', 'scare': 'Маска «Бу!»', 'helm': 'Компас'}
+
+
+def sk_icon(kind, cx, cy, k=0.78, sw=0.5):
+    """Значки навыков (же значки — символ проверки в выборах событий)."""
+    st = 'fill="none" stroke="%s" stroke-width="%.2f" stroke-linecap="round" stroke-linejoin="round"' % (INK, sw)
+
+    def P(d, fill=None):
+        f = ' fill="%s"' % fill if fill else ''
+        return '<path d="%s" %s%s transform="translate(%.2f %.2f) scale(%.3f)"/>' % (d, st, f, cx, cy, k)
+
+    def Cc(x, y, r, fill=False):
+        return ('<circle cx="%.2f" cy="%.2f" r="%.2f" fill="%s" stroke="%s" stroke-width="%.2f" '
+                'transform="translate(%.2f %.2f) scale(%.3f)"/>') % (x, y, r, INK if fill else 'none', INK, sw / k, cx, cy, k)
+    o = []
+    if kind == 'nose':      # лупа
+        o.append(Cc(-0.8, -0.8, 2.5))
+        o.append(P('M1.1 1.1 L3.8 3.8'))
+        o.append(P('M-2.0 -1.8 Q-1.4 -2.8 -0.4 -2.9'))
+    elif kind == 'bone':    # костлявая рука «бицепс»: предплечье вверх, кулак, плечо вправо
+        o.append(P('M-2.6 3.6 L-2.6 -0.8'))                       # предплечье (кость)
+        o.append(Cc(-2.6, -2.2, 1.4))                              # кулак
+        o.append(P('M-2.6 3.6 L3.2 3.6'))                          # плечо (кость)
+        o.append(P('M-0.4 3.6 Q0.6 -0.3 3.0 0.9 Q3.6 1.8 3.2 3.6'))  # бицепс
+        o.append(Cc(3.7, 4.0, 0.7)); o.append(Cc(-2.6, 4.2, 0.7))
+        o.append(P('M-1.6 -3.0 L-3.6 -3.0'))
+    elif kind == 'grab':    # рыболовный крючок
+        o.append(P('M1.2 -3.2 L1.2 1.4 Q1.2 3.8 -0.9 3.8 Q-2.9 3.8 -2.9 1.8'))
+        o.append(P('M-2.9 1.8 L-3.9 0.5 M-2.9 1.8 L-1.9 0.6'))
+        o.append(Cc(1.2, -3.8, 0.7))
+    elif kind == 'eye':     # пиратский пистоль
+        o.append(P('M-3.9 -2.2 L1.6 -2.2 L1.6 -0.4 L-3.9 -0.4 Z'))
+        o.append(P('M1.6 -2.0 L3.0 -2.6 L3.8 -1.4 L3.2 3.8 L1.2 3.8 L1.2 -0.4'))
+        o.append(P('M0.6 -0.4 Q0.4 1.4 -0.4 1.4'))
+        o.append(P('M-3.2 -2.2 L-3.2 -3.1'))
+    elif kind == 'scare':   # череп в треуголке, оба глаза под повязкой
+        o.append(P('M-3.9 -1.3 Q0 -5.0 3.9 -1.3 L2.8 -0.4 Q0 -2.4 -2.8 -0.4 Z'))
+        o.append(P('M-2.5 3.8 L-2.5 3.0 L-2.8 3.0 Q-3.2 -0.3 0 -0.3 Q3.2 -0.3 2.8 3.0 L2.5 3.0 L2.5 3.8 Z'))
+        o.append(Cc(-1.1, 1.3, 0.85, True)); o.append(Cc(1.1, 1.3, 0.85, True))
+        o.append(P('M-3.0 0.7 L3.0 1.9', fill=None))
+        o.append(P('M-0.7 3.0 L-0.7 3.8 M0.7 3.0 L0.7 3.8'))
+    elif kind == 'helm':
+        return ico('helm', cx, cy, k * 1.0, sw)
+    return ''.join(o)
+
+
+def wrap_text(s, n):
+    rows, cur = [], ''
+    for w_ in s.split(' '):
+        if len((cur + ' ' + w_).strip()) > n:
+            rows.append(cur)
+            cur = w_
+        else:
+            cur = (cur + ' ' + w_).strip()
+    if cur:
+        rows.append(cur)
+    return rows
+
+
+def box(x, y, s, n=None, filled=False, star=False, fs=5.0):
+    o = [R(x, y, s, s, 0.5, 0.3, INK if filled else 'none')]
+    if star:
+        o.append(T(x + s / 2, y + s * 0.78, '✦', 6, 'middle', fill=INK, family=SYM))
+    elif n is not None:
+        o.append(T(x + s / 2, y + s * 0.72, str(n), fs, 'middle', fill=GRAY, family=SANS))
+    return ''.join(o)
+
+
+def char_page(x0, y0, ch, idx):
+    o = []
+    left = (idx % 2 == 0)
+    xl = x0 + (OUT_PAD if left else IN_PAD)
+    wd = PW - OUT_PAD - IN_PAD
+    y = y0 + OUT_PAD
+    half = 33.0                       # левая половина шапки
+    # --- шапка: слева номер, название, описание, имя; справа рамка «Портрет»
+    o.append(C(xl + 3.6, y + 4.0, 3.6, fill=INK))
+    o.append(T(xl + 3.6, y + 5.9, str(idx + 1), 10, 'middle', 'bold', '#fff', SERIF))
+    nm = ch['name'].upper()
+    fs = min(9.5, (half - 9.0) / (len(nm) * 0.62 * PT))
+    o.append(T(xl + 8.2, y + 4.5, nm, fs, weight='bold', family=SERIF))
+    ty = y + 10.4
+    for row in wrap_text(ch['tag'], 28):
+        o.append(T(xl, ty, row, 5.2, fill=GRAY, italic=True))
+        ty += 2.6
+    o.append(T(xl, y + 18.6, 'Имя:', 6.2, weight='bold'))
+    o.append(L(xl + 7, y + 18.6, xl + half, y + 18.6, 0.3))
+    px = xl + half + 1.5
+    o.append(R(px, y, wd - half - 1.5, 21.0, 1.2, 0.3, dash='1.2 1'))
+    o.append(T(px + (wd - half - 1.5) / 2, y + 11.5, 'Портрет', 5.6, 'middle', fill=GRAY, italic=True))
+    # --- навыки
+    y += 24.0
+    o.append(T(xl, y, 'НАВЫКИ', 6.2, weight='bold', ls=0.3))
+    gx = xl + 44.5
+    o.append(T(gx, y, 'СНАРЯЖЕНИЕ', 5.0, fill=GRAY, weight='bold'))
+    o.append(T(xl + wd, y, '+1 ☐ есть', 5.0, 'end', fill=GRAY, family=SYM))
+    y += 1.6
+    s = 4.4
+    pitch = 5.2
+    for k in SK_ORDER:
+        o.append(sk_icon(k, xl + 2.8, y + s / 2 + 0.1))
+        o.append(T(xl + 6.6, y + 3.4, SKILLS[k], 6.4))
+        for i in range(1, 5):
+            bx = xl + 22.0 + (i - 1) * (s + 0.9)
+            o.append(box(bx, y, s, filled=i <= ch['start'].get(k, 0), star=(ch['star'].get(k) == i)))
+        o.append(box(gx, y, s))
+        o.append(T(gx + s + 1.1, y + 3.3, GEAR[k], 5.2))
+        y += pitch
+    o.append(T(xl, y + 1.9, '■ старт · ✦ искра', 4.8, fill=GRAY, family=SYM))
+    y += 4.4
+    # --- личные счётчики: название + один квадрат
+    o.append(T(xl, y, 'ЛИЧНЫЕ СЧЁТЧИКИ', 6.2, weight='bold', ls=0.2))
+    y += 1.5
+    cw = wd / 4
+    for i, name in enumerate(('Слава', 'Удача', 'Добыча', 'Искры')):
+        cx = xl + i * cw
+        o.append(T(cx, y + 4.2, name, 5.8))
+        o.append(R(cx + 10.3 if name != 'Добыча' else cx + 11.0, y, 5.2, 5.2, 0.5, 0.3))
+    y += 9.2
+    # --- заметки (слева) и предметы (справа)
+    o.append(T(xl, y, 'ЗАМЕТКИ', 6.2, weight='bold'))
+    o.append(T(xl + 12.5, y, 'слова для флешбеков', 4.8, fill=GRAY, italic=True))
+    o.append(T(xl + half + 1.5, y, 'ПРЕДМЕТЫ', 6.2, weight='bold'))
+    y += 1.4
+    bottom = y0 + PH - OUT_PAD
+    n = max(3, int((bottom - y) // 3.9))
+    step = (bottom - y) / n
+    for j in range(n):
+        ly = y + step * (j + 1) - 0.4
+        o.append(T(xl, ly - 0.5, str(j + 1), 4.8, fill=GRAY))
+        o.append(L(xl + 3.0, ly, xl + half, ly, 0.25, '#888'))
+        o.append(L(xl + half + 1.5, ly, xl + wd, ly, 0.25, '#888'))
+    return '\n'.join(o), bottom - y0
+
+

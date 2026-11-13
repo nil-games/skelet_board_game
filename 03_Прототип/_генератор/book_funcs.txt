@@ -1,0 +1,120 @@
+
+import re as _re
+PAGES = {}
+TITLES = {}
+
+
+def pg(i):
+    return '<a href="#ev-%s">стр. %s</a>' % (i, PAGES.get(i, '?'))
+
+
+def short(t, n=96):
+    first = _re.split(r'(?<=[.!?])\s', t)[0]
+    return first if len(first) <= n else first[:n - 1].rstrip() + '…'
+
+
+def flow_name(e):
+    return 'цикл' if e.get('flow') == 'loop' else 'проходной'
+
+
+def battle_block(b):
+    import content
+    cls = b['cls']
+    u, ds = content.ENEMY_DAMAGE[cls]
+    reward = content.BATTLE_REWARD[cls]
+    h = ['<div class="ev" id="ev-%s"><div class="hd"><span class="sym">⚓</span> %s <small>[%s] · Тип: бой (Борт), враг: %s</small></div>' % (b['id'], b['title'], b['id'], cls)]
+    h.append('<div class="read"><b>Читать вслух.</b> %s<div class="warn">Предупреждение: %s</div></div>' % (b['flavor'], b['warn']))
+    h.append('<table><tr><th>Скелетов (ходов за круг)</th><th>Корпус врага</th><th>Руль S</th><th>Урон врага</th></tr>')
+    for n, (hull, s_) in content.ENEMY_BY_N.items():
+        h.append('<tr><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>' % (n, hull + b.get('hull_bonus', 0), s_ + ds, u))
+    h.append('</table>')
+    h.append('<div><b>Особенность:</b> %s</div>' % b['special'])
+    h.append('<div><b>Порядок:</b> идите на страницу <b>Борт</b> (буклет, стр. 3). Правила боя — раздел «Морской бой «Залп»» ниже (и урок 4 Обучения).</div>')
+    h.append('<div><b>Награда:</b> победа — Сокровища +%d каждому скелету; ничья (враг отступил) — Сокровища +%d каждому; поражение — игра окончена.</div>' % (reward, reward // 2))
+    h.append('<div class="lock"><b>После боя:</b> корабль <b>уходит из клетки сам</b>. Вернитесь на Карту и проведите линию в соседнюю клетку.</div></div>')
+    return ''.join(h)
+
+
+def block_by_id(i):
+    import content
+    for b in content.BATTLES:
+        if b['id'] == i:
+            return battle_block(b)
+    for e in content.EVENTS:
+        if e['id'] == i:
+            return event_block(e)
+    for p in content.PORTS:
+        if p['id'] == i:
+            return event_block(p, 'port')
+    raise KeyError(i)
+
+
+def row(d, i, kind, text):
+    return '<tr><td class="n">%s</td><td><b>%s</b> <small>%s</small></td><td>%s</td><td><small>%s</small></td><td>%s</td></tr>' % (d, TITLES[i], i, kind, text, pg(i))
+
+
+def lists_html():
+    import content
+    for e in content.EVENTS:
+        TITLES[e['id']] = e['title']
+    for b in content.BATTLES:
+        TITLES[b['id']] = b['title']
+    for p in content.PORTS:
+        TITLES[p['id']] = p['title']
+    desc = {e['id']: short(e['flavor']) for e in content.EVENTS}
+    desc.update({b['id']: short(b['flavor']) for b in content.BATTLES})
+    kinds = {e['id']: flow_name(e) for e in content.EVENTS}
+    kinds.update({b['id']: 'бой, враг %s' % b['cls'] for b in content.BATTLES})
+    h = ['<h2 id="lists">Списки событий (бросок d6)</h2>']
+    h.append('<p><b>Как выбрать событие.</b> Корабль вошёл в клетку: если значка нет, бросьте d6 на <b>тип местности</b> и нарисуйте значок. Затем бросьте d6 по <b>списку этого типа</b> ниже: выпавший номер — событие. Номера страниц нажимаются: переходят в нужный раздел.</p>')
+    h.append('<table><tr><th>d6</th><th>Значок</th><th>Тип</th><th>Список</th></tr>')
+    names = {'s': 'штиль', 'sp': 'особый штиль (читает список штиля)', 'st': 'шторм', 'sh': 'корабль', 'f': 'туман', 'i': 'остров'}
+    anchors = {'s': 'list-s', 'sp': 'list-s', 'st': 'list-st', 'sh': 'list-sh', 'f': 'list-f', 'i': 'list-i'}
+    for a, b, code, sy, nm in content.HINT_TABLE:
+        h.append('<tr><td>%s</td><td><span class="sym">%s</span></td><td>%s</td><td><a href="#%s">к списку</a></td></tr>' % (str(a) if a == b else '%d–%d' % (a, b), sy, names[code], anchors[code]))
+    h.append('</table>')
+
+    def table(anchor, title, ids, note=''):
+        t = ['<h3 id="%s">%s</h3>' % (anchor, title)]
+        if note:
+            t.append('<p><small>%s</small></p>' % note)
+        t.append('<table><tr><th>d6</th><th>Событие</th><th>Тип</th><th>О чём</th><th>Страница</th></tr>')
+        for k, i in enumerate(ids):
+            t.append(row(k + 1, i, kinds.get(i, 'порт'), desc.get(i, '')))
+        t.append('</table>')
+        return ''.join(t)
+    P = content.POOLS
+    h.append(table('list-s', '☀ Штиль и особый штиль', P['s'], 'На штиле и особом штиле работает слот 7 «Рыбалка». У особого штиля свой улов (регион задаёт сценарий).'))
+    h.append(table('list-st', 'ϟ Шторм', P['st'], 'Все шторма — циклы: корабль уходит только слотом «Штурвал»; новый круг стоит Ропот +1 и Корпус −1.'))
+    h.append(table('list-f', '☁ Туман', P['f']))
+    h.append(table('list-sh', '⚓ Корабль', P['sh'], 'Чаще всего бой (Борт). Остальное — мирные встречи на Палубе: переговоры, торговля, погоня.'))
+    h.append('<h3 id="list-i">△ Остров</h3><p>Первый заход: присвойте острову номер (△ с цифрой внутри) и бросьте d6: <b>1–4 — порт</b> (дальше d6 по таблице портов), <b>5–6 — необитаемый остров</b> (дальше d6 по списку необитаемых). Повторный заход: найдите номер в Журнале островов.</p>')
+    port_ids = [x[2] for x in content.PORT_TABLE]
+    pdesc = {p['id']: 'Магазин: %s · Игорный дом: %s · Рыба: %s' % ('есть' if p.get('shop') else 'нет', 'есть' if p.get('casino') else 'нет', p.get('fish', '')) for p in content.PORTS}
+    t = ['<h4>Порты (d6)</h4><table><tr><th>d6</th><th>Порт</th><th>Тип</th><th>Что есть</th><th>Страница</th></tr>']
+    for k, i in enumerate(port_ids):
+        t.append(row(k + 1, i, 'порт', pdesc[i]))
+    t.append('</table>')
+    h.append(''.join(t))
+    wild = ['<h4>Необитаемые острова (d6)</h4><table><tr><th>d6</th><th>Событие</th><th>Тип</th><th>О чём</th><th>Страница</th></tr>']
+    for k, i in enumerate(P['i_wild']):
+        wild.append(row(k + 1, i, kinds[i], desc[i]))
+    wild.append('</table>')
+    h.append(''.join(wild))
+    return ''.join(h)
+
+
+def events_html():
+    import content
+    P = content.POOLS
+    out = []
+    for n, (key, title) in enumerate((('s', 'Штиль и особый штиль'), ('st', 'Шторм'), ('f', 'Туман'), ('sh', 'Корабль'), ('i_wild', 'Необитаемые острова'))):
+        out.append('<h2 class="%s" id="grp-%s">Каталог: %s</h2>' % ('pb' if n == 0 else '', key, title))
+        for i in P[key]:
+            out.append(block_by_id(i))
+    return ''.join(out)
+
+
+def ports_html():
+    import content
+    return ''.join(block_by_id(i) for _, _, i in content.PORT_TABLE)
