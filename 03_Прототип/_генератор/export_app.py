@@ -25,6 +25,9 @@ APP_PUBLIC = os.path.join(ROOT, 'app', 'public')
 OUT = os.path.join(APP_PUBLIC, 'game_data.json')
 ICON_SRC = os.path.join(ROOT, 'Картинки')
 ICON_DST = os.path.join(APP_PUBLIC, 'icons')
+ART_SRC = os.path.join(ROOT, 'Картинки', 'Картинки ивентов')
+ART_DST = os.path.join(APP_PUBLIC, 'art')
+ART_WIDTH = 768          # ширина для телефона; исходники 1024×1536 весят по 3 МБ
 
 errors = []
 
@@ -274,6 +277,42 @@ def copy_icons():
         shutil.copyfile(src, os.path.join(ICON_DST, key + '.png'))
 
 
+def export_art(data):
+    """Картинки ивентов: файл «<ID> <название>.png» → art/<ID>.webp, поле image у события/порта/боя.
+    Файлы без ID в начале имени пропускаются (печатается предупреждение), картинка не обязательна."""
+    os.makedirs(ART_DST, exist_ok=True)
+    targets = {}
+    for group in ('events', 'ports', 'battles'):
+        for i, e in data[group].items():
+            targets[i] = e
+            e['image'] = None
+    warnings = []
+    # уже сконвертированные картинки (в репозитории лежат только они; исходники PNG тяжёлые)
+    for eid, e in targets.items():
+        if os.path.exists(os.path.join(ART_DST, eid + '.webp')):
+            e['image'] = 'art/%s.webp' % eid
+    if not os.path.isdir(ART_SRC):
+        return warnings
+    for fn in sorted(os.listdir(ART_SRC)):
+        if not fn.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+            continue
+        m = re.match(r'^([A-Z]+\d+)(?![0-9A-Za-z])', fn)
+        if not m or m.group(1) not in targets:
+            warnings.append('картинка без известного ID в начале имени, пропущена: %s' % fn)
+            continue
+        eid = m.group(1)
+        src = os.path.join(ART_SRC, fn)
+        dst = os.path.join(ART_DST, eid + '.webp')
+        if not os.path.exists(dst) or os.path.getmtime(dst) < os.path.getmtime(src):
+            from PIL import Image
+            im = Image.open(src).convert('RGB')
+            if im.width > ART_WIDTH:
+                im = im.resize((ART_WIDTH, round(im.height * ART_WIDTH / im.width)), Image.LANCZOS)
+            im.save(dst, 'WEBP', quality=80, method=6)
+        targets[eid]['image'] = 'art/%s.webp' % eid
+    return warnings
+
+
 def main():
     data = build()
     if errors:
@@ -281,6 +320,7 @@ def main():
         for e in errors:
             print('  -', e)
         sys.exit(1)
+    warnings = export_art(data)
     body = json.dumps(data, ensure_ascii=False, sort_keys=True)
     data['version'] = hashlib.sha1(body.encode('utf-8')).hexdigest()[:10]
     os.makedirs(APP_PUBLIC, exist_ok=True)
@@ -290,6 +330,9 @@ def main():
         sys.exit(1)
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
+    for w in warnings:
+        print('  ! ' + w)
+    print('картинок: %d' % sum(1 for g in ('events', 'ports', 'battles') for e in data[g].values() if e['image']))
     print('ok: %s (версия %s) событий %d, портов %d, боёв %d' % (OUT, data['version'], len(data['events']), len(data['ports']), len(data['battles'])))
 
 

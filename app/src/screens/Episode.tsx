@@ -34,7 +34,6 @@ export function Episode({ g, d, onStart, onTimeout, onPlay, onEnd, onBuy, onClos
     <section class="episode">
       <p class="kicker">{head}{ev.flow === 'loop' ? ` · цикл, круг ${sc.circle}` : ''}{isPort && sc.circle > 1 ? ` · раунд ${sc.circle}` : ''}</p>
       <h2>{ev.title}</h2>
-      {(sc.circle === 1 || !acting) && <p class="read">{ev.flavor}</p>}
       {ev.warn && <p class="warn">⚠ {ev.warn}</p>}
       {isPort && ev.fish && <p class="note">Рыба здесь: {ev.fish}.</p>}
 

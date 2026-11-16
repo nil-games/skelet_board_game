@@ -18,6 +18,7 @@ export interface Scene {
   plays: Play[];
   shipLeft: boolean;          // за раунд получен Ход → корабль покинул клетку
   exclFrom: number | null;    // слоты с номером больше этого не разыгрываются
+  intro?: boolean;            // стартовый экран эпизода ещё не закрыт
 }
 export interface Battle {
   id: string;
@@ -106,7 +107,7 @@ export function drawFromPool(g: Game, d: GameData, pool: string, rng: Rng): { id
 }
 
 function sceneFor(eventId: string, terrain: string, island: number | null, kind: Scene['kind']): Scene {
-  return { kind, eventId, terrain, island, circle: 1, plays: [], shipLeft: false, exclFrom: null };
+  return { kind, eventId, terrain, island, circle: 1, plays: [], shipLeft: false, exclFrom: null, intro: true };
 }
 
 export function terrainPool(terrain: string): string {
@@ -176,6 +177,11 @@ export function slotState(g: Game, s: Slot): { blocked: string | null; mandatory
 export function eventSlots(g: Game, d: GameData): Slot[] {
   const ev = currentEvent(g, d);
   return ev ? ev.slots : [];
+}
+
+/** Закрыть стартовый экран эпизода (картинка, название, описание). */
+export function closeIntro(g: Game): Game {
+  return g.scene ? { ...g, scene: { ...g.scene, intro: false } } : g;
 }
 
 export function startActions(g: Game): Game {

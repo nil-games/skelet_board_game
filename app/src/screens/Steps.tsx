@@ -48,7 +48,6 @@ export function BattlePrep({ g, d, onStart }: { g: Game; d: GameData; onStart: (
     <section>
       <p class="kicker">Корабль · бой · враг {b.cls}</p>
       <h2>{b.title}</h2>
-      <p class="read">{b.flavor}</p>
       {b.warn && <p class="warn">⚠ {b.warn}</p>}
       {b.special && <p class="note"><b>Особенность:</b> {b.special}</p>}
       <div class="stats">

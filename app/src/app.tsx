@@ -8,6 +8,7 @@ import { Episode } from './screens/Episode';
 import { Journal } from './screens/Journal';
 import { Reference } from './screens/Reference';
 import { Home, Setup } from './screens/Setup';
+import { Intro } from './screens/Intro';
 import { After, BattlePrep, BattleView, Flashback, MapStep } from './screens/Steps';
 
 type View = 'home' | 'setup' | 'game';
@@ -77,6 +78,10 @@ export function App() {
   const rng = Math.random;
   const stale = g.contentVersion !== d.version;
   const missing = g.scene && !eventById(d, g.scene.eventId) && !d.battles[g.scene.eventId];
+
+  if (g.scene?.intro && !missing && (g.step === 'plan' || g.step === 'battle-prep')) {
+    return <Intro g={g} d={d} onNext={() => act(E.closeIntro)} />;
+  }
 
   return (
     <main class="game">

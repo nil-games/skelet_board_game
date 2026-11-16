@@ -56,6 +56,16 @@ describe('выбор эпизода', () => {
   });
 });
 
+describe('стартовый экран эпизода', () => {
+  it('новый эпизод открывается со стартовым экраном, стрелка его закрывает, новый круг — без него', () => {
+    const g = E.enterCell(fresh(), d, 'st', seq(0));
+    expect(g.scene!.intro).toBe(true);
+    const g2 = E.closeIntro(g);
+    expect(g2.scene!.intro).toBe(false);
+    expect(E.goNext({ ...g2, step: 'after' }, 'circle').scene!.intro).toBe(false);
+  });
+});
+
 describe('слоты и конец раунда', () => {
   it('исход применяет корабельное, личное отдаёт игрокам', () => {
     const g = E.playSlot(withEvent('S1'), d, 2, 2); // «Выписать чайкам штраф», 7+: F+1, T+1

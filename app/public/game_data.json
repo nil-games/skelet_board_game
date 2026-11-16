@@ -418,7 +418,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": "art/S1.webp"
   },
   "S2": {
    "id": "S2",
@@ -670,7 +671,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": "art/S2.webp"
   },
   "ST1": {
    "id": "ST1",
@@ -895,7 +897,8 @@
    "circle": {
     "M": 1,
     "H": -1
-   }
+   },
+   "image": "art/ST1.webp"
   },
   "ST2": {
    "id": "ST2",
@@ -1150,7 +1153,8 @@
    "circle": {
     "M": 1,
     "H": -1
-   }
+   },
+   "image": null
   },
   "SH1": {
    "id": "SH1",
@@ -1343,7 +1347,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "SH2": {
    "id": "SH2",
@@ -1593,7 +1598,8 @@
    },
    "circle": {
     "M": 1
-   }
+   },
+   "image": null
   },
   "F1": {
    "id": "F1",
@@ -1827,7 +1833,8 @@
    },
    "circle": {
     "M": 1
-   }
+   },
+   "image": null
   },
   "F2": {
    "id": "F2",
@@ -2022,7 +2029,8 @@
     },
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "I1": {
    "id": "I1",
@@ -2227,7 +2235,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "I2": {
    "id": "I2",
@@ -2416,7 +2425,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "S3": {
    "id": "S3",
@@ -2701,7 +2711,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": "art/S3.webp"
   },
   "S4": {
    "id": "S4",
@@ -2932,7 +2943,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": "art/S4.webp"
   },
   "S5": {
    "id": "S5",
@@ -3167,7 +3179,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": "art/S5.webp"
   },
   "S6": {
    "id": "S6",
@@ -3417,7 +3430,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": "art/S6.webp"
   },
   "ST3": {
    "id": "ST3",
@@ -3643,7 +3657,8 @@
    "circle": {
     "M": 1,
     "H": -1
-   }
+   },
+   "image": null
   },
   "ST4": {
    "id": "ST4",
@@ -3906,7 +3921,8 @@
    "circle": {
     "M": 1,
     "H": -1
-   }
+   },
+   "image": null
   },
   "ST5": {
    "id": "ST5",
@@ -4170,7 +4186,8 @@
    "circle": {
     "M": 1,
     "H": -1
-   }
+   },
+   "image": null
   },
   "ST6": {
    "id": "ST6",
@@ -4422,7 +4439,8 @@
    "circle": {
     "M": 1,
     "H": -1
-   }
+   },
+   "image": null
   },
   "F3": {
    "id": "F3",
@@ -4625,7 +4643,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "F4": {
    "id": "F4",
@@ -4838,7 +4857,8 @@
    },
    "circle": {
     "M": 1
-   }
+   },
+   "image": null
   },
   "F5": {
    "id": "F5",
@@ -5028,7 +5048,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "F6": {
    "id": "F6",
@@ -5276,7 +5297,8 @@
    },
    "circle": {
     "M": 1
-   }
+   },
+   "image": null
   },
   "I3": {
    "id": "I3",
@@ -5465,7 +5487,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "I4": {
    "id": "I4",
@@ -5669,7 +5692,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "I5": {
    "id": "I5",
@@ -5858,7 +5882,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "I6": {
    "id": "I6",
@@ -6023,7 +6048,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   },
   "SH3": {
    "id": "SH3",
@@ -6214,7 +6240,8 @@
     "always": null,
     "crewBelow": [],
     "circle": null
-   }
+   },
+   "image": null
   }
  },
  "ports": {
@@ -6375,7 +6402,8 @@
    },
    "shop": true,
    "casino": true,
-   "fish": "платит по цене из таблицы улова"
+   "fish": "платит по цене из таблицы улова",
+   "image": null
   },
   "P2": {
    "id": "P2",
@@ -6538,7 +6566,8 @@
    },
    "shop": false,
    "casino": false,
-   "fish": "платит на 1 меньше (минимум 1)"
+   "fish": "платит на 1 меньше (минимум 1)",
+   "image": null
   },
   "P3": {
    "id": "P3",
@@ -6695,7 +6724,8 @@
    },
    "shop": false,
    "casino": true,
-   "fish": "не берёт"
+   "fish": "не берёт",
+   "image": null
   },
   "P4": {
    "id": "P4",
@@ -6858,7 +6888,8 @@
    },
    "shop": true,
    "casino": false,
-   "fish": "не берёт"
+   "fish": "не берёт",
+   "image": null
   },
   "P5": {
    "id": "P5",
@@ -7016,7 +7047,8 @@
    },
    "shop": false,
    "casino": true,
-   "fish": "не берёт"
+   "fish": "не берёт",
+   "image": null
   },
   "P6": {
    "id": "P6",
@@ -7173,7 +7205,8 @@
    },
    "shop": false,
    "casino": false,
-   "fish": "платит на 1 больше (рыбаки знают цену)"
+   "fish": "платит на 1 больше (рыбаки знают цену)",
+   "image": null
   }
  },
  "battles": {
@@ -7184,7 +7217,8 @@
    "special": "Особенностей нет.",
    "flavor": "В небе кружит тень. Это огромная чайка с пушкой. Она очень хочет ваш обед.",
    "warn": "Чайка голодна. Вы не едите.",
-   "hullBonus": 0
+   "hullBonus": 0,
+   "image": null
   },
   "B2": {
    "id": "B2",
@@ -7193,7 +7227,8 @@
    "special": "Перед боем каждый скелет платит 1 Сокровище; кто не платит, Ропот +1.",
    "flavor": "Из-за мыса выползает галера с надписью «НАЛОГОВАЯ». Вместо вёсел у неё скрепки. Требуют уплатить налог за воздух, которым вы не дышите.",
    "warn": "Спорить с ними бесполезно, у них есть бланки.",
-   "hullBonus": 0
+   "hullBonus": 0,
+   "image": null
   },
   "B3": {
    "id": "B3",
@@ -7202,7 +7237,8 @@
    "special": "Корпус врага +3 к таблице. Награда выше.",
    "flavor": "Её корабль так ржавеет, что скрипит на весь океан. Сама Королева — трёхметровая ржавая статуя с титановым характером. Она не любит ничего блестящего, кроме своей короны.",
    "warn": "Тот, кто блестит, получает первым.",
-   "hullBonus": 3
+   "hullBonus": 3,
+   "image": null
   }
  },
  "enemyByN": {
@@ -7625,5 +7661,5 @@
   "choices": null
  },
  "flashbackEvery": 3,
- "version": "c3396c37be"
+ "version": "448aa90f2f"
 }

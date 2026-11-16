@@ -39,8 +39,9 @@ export interface EventDef {
   shop?: boolean;
   casino?: boolean;
   fish?: string | null;
+  image?: string | null;
 }
-export interface BattleDef { id: string; title: string; cls: string; special: string | null; flavor: string; warn: string | null; hullBonus: number }
+export interface BattleDef { id: string; title: string; cls: string; special: string | null; flavor: string; warn: string | null; hullBonus: number; image?: string | null }
 export interface ShipScale { name: string; start: number; lo: number | null; hi: number; scenario_only?: boolean }
 
 export interface GameData {
