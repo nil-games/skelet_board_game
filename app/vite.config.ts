@@ -10,7 +10,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'game_data.json'],
-      workbox: { globPatterns: ['**/*.{js,css,html,png,webp,json}'] },
+      workbox: { globPatterns: ['**/*.{js,css,html,png,webp,json,woff2}'] },
       manifest: {
         name: 'Всем костям на борт!',
         short_name: 'Кости на борт',

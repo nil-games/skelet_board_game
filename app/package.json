@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource/pt-serif": "^5.3.0",
+    "@fontsource/yeseva-one": "^5.3.0",
     "preact": "^11.2.0"
   },
   "devDependencies": {
