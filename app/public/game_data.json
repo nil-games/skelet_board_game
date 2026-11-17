@@ -1154,7 +1154,7 @@
     "M": 1,
     "H": -1
    },
-   "image": null
+   "image": "art/ST2.webp"
   },
   "SH1": {
    "id": "SH1",
@@ -1348,7 +1348,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/SH1.webp"
   },
   "SH2": {
    "id": "SH2",
@@ -1599,7 +1599,7 @@
    "circle": {
     "M": 1
    },
-   "image": null
+   "image": "art/SH2.webp"
   },
   "F1": {
    "id": "F1",
@@ -1834,7 +1834,7 @@
    "circle": {
     "M": 1
    },
-   "image": null
+   "image": "art/F1.webp"
   },
   "F2": {
    "id": "F2",
@@ -2030,7 +2030,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/F2.webp"
   },
   "I1": {
    "id": "I1",
@@ -2236,7 +2236,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/I1.webp"
   },
   "I2": {
    "id": "I2",
@@ -2426,7 +2426,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/I2.webp"
   },
   "S3": {
    "id": "S3",
@@ -3658,7 +3658,7 @@
     "M": 1,
     "H": -1
    },
-   "image": null
+   "image": "art/ST3.webp"
   },
   "ST4": {
    "id": "ST4",
@@ -3922,7 +3922,7 @@
     "M": 1,
     "H": -1
    },
-   "image": null
+   "image": "art/ST4.webp"
   },
   "ST5": {
    "id": "ST5",
@@ -4187,7 +4187,7 @@
     "M": 1,
     "H": -1
    },
-   "image": null
+   "image": "art/ST5.webp"
   },
   "ST6": {
    "id": "ST6",
@@ -4440,7 +4440,7 @@
     "M": 1,
     "H": -1
    },
-   "image": null
+   "image": "art/ST6.webp"
   },
   "F3": {
    "id": "F3",
@@ -4644,7 +4644,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/F3.webp"
   },
   "F4": {
    "id": "F4",
@@ -4858,7 +4858,7 @@
    "circle": {
     "M": 1
    },
-   "image": null
+   "image": "art/F4.webp"
   },
   "F5": {
    "id": "F5",
@@ -5049,7 +5049,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/F5.webp"
   },
   "F6": {
    "id": "F6",
@@ -5298,7 +5298,7 @@
    "circle": {
     "M": 1
    },
-   "image": null
+   "image": "art/F6.webp"
   },
   "I3": {
    "id": "I3",
@@ -5488,7 +5488,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/I3.webp"
   },
   "I4": {
    "id": "I4",
@@ -5693,7 +5693,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/I4.webp"
   },
   "I5": {
    "id": "I5",
@@ -5883,7 +5883,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/I5.webp"
   },
   "I6": {
    "id": "I6",
@@ -6049,7 +6049,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/I6.webp"
   },
   "SH3": {
    "id": "SH3",
@@ -6241,7 +6241,7 @@
     "crewBelow": [],
     "circle": null
    },
-   "image": null
+   "image": "art/SH3.webp"
   }
  },
  "ports": {
@@ -6403,7 +6403,7 @@
    "shop": true,
    "casino": true,
    "fish": "платит по цене из таблицы улова",
-   "image": null
+   "image": "art/P1.webp"
   },
   "P2": {
    "id": "P2",
@@ -7661,5 +7661,5 @@
   "choices": null
  },
  "flashbackEvery": 3,
- "version": "448aa90f2f"
+ "version": "212fc41df4"
 }
