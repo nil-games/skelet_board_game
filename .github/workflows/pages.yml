@@ -20,6 +20,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: pip install pillow
       - name: Экспорт контента (с проверкой)
         run: python -X utf8 "03_Прототип/_генератор/export_app.py"
       - uses: actions/setup-node@v4
