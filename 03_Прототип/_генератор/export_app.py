@@ -23,9 +23,9 @@ from icons import ICONS  # noqa: E402
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 APP_PUBLIC = os.path.join(ROOT, 'app', 'public')
 OUT = os.path.join(APP_PUBLIC, 'game_data.json')
-ICON_SRC = os.path.join(ROOT, 'Картинки')
+ICON_SRC = os.path.join(ROOT, 'Картинки', 'Картинки')
 ICON_DST = os.path.join(APP_PUBLIC, 'icons')
-ART_SRC = os.path.join(ROOT, 'Картинки', 'Картинки ивентов')
+ART_SRC = os.path.join(ROOT, 'Картинки', 'Картинки', 'Картинки ивентов')
 ART_DST = os.path.join(APP_PUBLIC, 'art')
 ART_WIDTH = 768          # ширина для телефона; исходники 1024×1536 весят по 3 МБ
 
