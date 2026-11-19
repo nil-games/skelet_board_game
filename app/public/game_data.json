@@ -6567,7 +6567,7 @@
    "shop": false,
    "casino": false,
    "fish": "платит на 1 меньше (минимум 1)",
-   "image": null
+   "image": "art/P2.webp"
   },
   "P3": {
    "id": "P3",
@@ -6725,7 +6725,7 @@
    "shop": false,
    "casino": true,
    "fish": "не берёт",
-   "image": null
+   "image": "art/P3.webp"
   },
   "P4": {
    "id": "P4",
@@ -6889,7 +6889,7 @@
    "shop": true,
    "casino": false,
    "fish": "не берёт",
-   "image": null
+   "image": "art/P4.webp"
   },
   "P5": {
    "id": "P5",
@@ -7048,7 +7048,7 @@
    "shop": false,
    "casino": true,
    "fish": "не берёт",
-   "image": null
+   "image": "art/P5.webp"
   },
   "P6": {
    "id": "P6",
@@ -7206,7 +7206,7 @@
    "shop": false,
    "casino": false,
    "fish": "платит на 1 больше (рыбаки знают цену)",
-   "image": null
+   "image": "art/P6.webp"
   }
  },
  "battles": {
@@ -7661,5 +7661,5 @@
   "choices": null
  },
  "flashbackEvery": 3,
- "version": "212fc41df4"
+ "version": "700209391b"
 }
