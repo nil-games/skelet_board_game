@@ -108,7 +108,7 @@ function Planning({ onStart, onTimeout }: { g: Game; onStart: () => void; onTime
     <div class="planning">
       <p class="hint">Планирование: по убыванию Славы каждый ставит кубик на слот. Исходы не читаются до фазы действий.</p>
       {useTimer && left !== null && left > 0 && <div class="timer"><span class={'count' + (left <= 10 ? ' low' : '')}>{left}</span></div>}
-      {expired && <p class="timeout-msg">Вы не успели за отведённое время</p>}
+      {expired && <p class="timeout-msg">Вы не успели за отведённое время<small>Ропот +1</small></p>}
       {idle
         ? <button class="primary wide" onClick={() => setLeft(timer)}>Начать выбор действий</button>
         : <button class="primary wide" data-snd="dice" onClick={onStart}>Кубики расставлены → действия</button>}
