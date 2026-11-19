@@ -3,7 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { setSoundOn, soundOn } from './sound';
 
 /** Варианты таймера планирования, секунды; 0 — выключен. Менять варианты только здесь. */
-export const TIMER_OPTIONS = [60, 45, 30, 0] as const;
+export const TIMER_OPTIONS = [60, 30, 15, 0] as const;
 export type TimerSec = (typeof TIMER_OPTIONS)[number];
 
 export interface Settings {
