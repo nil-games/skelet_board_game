@@ -6,6 +6,7 @@ import { currentEvent, endPreview, slotState, type Game } from '../engine/game';
 import { fmtEff } from '../engine/effects';
 import { Entities, Icon, ResultCard } from '../ui';
 import { CatchTable, ShopRef, CasinoRef } from './Reference';
+import { play } from '../sound';
 
 interface Props {
   g: Game;
@@ -60,7 +61,7 @@ export function Episode({ g, d, onStart, onTimeout, onPlay, onEnd, onBuy, onClos
               {extra === 'shop' && <div class="slot-body"><ShopRef d={d} onBuy={acting ? onBuy : undefined} /></div>}
             </li>
             <li class={'slot shared' + (ev.casino ? '' : ' blocked')}>
-              <button class="slot-head" disabled={!ev.casino} onClick={() => setExtra(extra === 'casino' ? null : 'casino')}>
+              <button class="slot-head" data-snd="casino" disabled={!ev.casino} onClick={() => setExtra(extra === 'casino' ? null : 'casino')}>
                 <span class="num">6</span><span class="title">Игорный дом</span>
                 {!ev.casino && <span class="why">в этом порту нет</span>}
               </button>
@@ -87,7 +88,9 @@ function slotNumbers(isPort: boolean, slots: Slot[]): number[] {
 function Planning({ g, onStart, onTimeout }: { g: Game; onStart: () => void; onTimeout: () => void }) {
   const [left, setLeft] = useState<number | null>(null);
   useEffect(() => {
-    if (left === null || left <= 0) return;
+    if (left === null) return;
+    if (left === 0) { play('timeout'); return; }
+    play('tick');
     const t = setTimeout(() => setLeft(left - 1), 1000);
     return () => clearTimeout(t);
   }, [left]);
@@ -102,7 +105,7 @@ function Planning({ g, onStart, onTimeout }: { g: Game; onStart: () => void; onT
           {left !== null && left > 0 && <button class="ghost" onClick={() => setLeft(null)}>стоп</button>}
         </div>
       )}
-      <button class="primary wide" onClick={onStart}>Кубики расставлены → действия</button>
+      <button class="primary wide" data-snd="dice" onClick={onStart}>Кубики расставлены → действия</button>
     </div>
   );
 }
@@ -155,21 +158,21 @@ function SlotCard({ g, d, s, acting, open, onToggle, onPlay, result }: { g: Game
             <div class="picker">
               <p>Обломки: выберите {picking.n - picking.picks.length} из вариантов {picking.picks.length ? `(выбрано: ${picking.picks.map((k) => ({ R: 'Ром', T: 'Сокровища', H: 'Корпус' })[k]).join(', ')})` : ''}</p>
               <div class="row">
-                <button onClick={() => addPick('R')}><Icon k="R" /> Ром +1</button>
-                <button onClick={() => addPick('T')}><Icon k="T" /> Сокровища +1</button>
-                <button onClick={() => addPick('H')}><Icon k="H" /> Корпус +1</button>
+                <button data-snd="choice" onClick={() => addPick('R')}><Icon k="R" /> Ром +1</button>
+                <button data-snd="choice" onClick={() => addPick('T')}><Icon k="T" /> Сокровища +1</button>
+                <button data-snd="choice" onClick={() => addPick('H')}><Icon k="H" /> Корпус +1</button>
               </div>
               <button class="ghost" onClick={() => setPicking(null)}>отмена</button>
             </div>
           ) : s.choices ? (
-            <div class="row">{s.choices.map((c, i) => <button key={i} onClick={() => choose(i)}>{c.label}</button>)}</div>
+            <div class="row">{s.choices.map((c, i) => <button key={i} data-snd="choice" onClick={() => choose(i)}>{c.label}</button>)}</div>
           ) : s.skill ? (
             <>
               <p class="hint">Бросок d6 + {d.skills[s.skill]} (+1 за прокачку перед проверкой, + Снаряжение) =</p>
-              <div class="row tiers">{s.outcomes.map((o, i) => <button key={i} onClick={() => choose(i)}>{o.label}</button>)}</div>
+              <div class="row tiers">{s.outcomes.map((o, i) => <button key={i} data-snd="choice" onClick={() => choose(i)}>{o.label}</button>)}</div>
             </>
           ) : (
-            <button class="wide" onClick={() => choose(0)}>Выполнить</button>
+            <button class="wide" data-snd="choice" onClick={() => choose(0)}>Выполнить</button>
           )}
           {s.n === 7 && <CatchTable d={d} />}
           <p class="hint small">{s.shared ? 'Общий слот: отыграйте каждый кубик по очереди (по убыванию Славы).' : 'Личный слот.'}</p>

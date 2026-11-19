@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import type { Player } from '../engine/game';
 import type { Saved } from '../store';
+import { SoundToggle } from '../ui';
 
 const COLORS = [
   { c: '#c0392b', n: 'красный' }, { c: '#2c6fb7', n: 'синий' }, { c: '#2e8b57', n: 'зелёный' },
@@ -14,6 +15,7 @@ export function Home({ hasCurrent, saves, onContinue, onNew, onLoad, onDelete, o
     <section class="home">
       <h1>Всем костям на борт!</h1>
       <p class="hint">Приложение лежит рядом с буклетом: книга эпизодов, планшет корабля и справочник.</p>
+      <SoundToggle />
       {hasCurrent && <button class="primary wide" onClick={onContinue}>Продолжить партию</button>}
       <button class="wide" onClick={onNew}>Новая партия</button>
       {saves.length > 0 && (

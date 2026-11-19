@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
+import { play, stop } from '../sound';
 import type { GameData } from '../data';
 import { eventById } from '../data';
 import type { Game } from '../engine/game';
@@ -24,6 +25,9 @@ export function Intro({ g, d, onNext }: { g: Game; d: GameData; onNext: () => vo
     window.addEventListener('resize', fit);
     return () => window.removeEventListener('resize', fit);
   }, [sc.eventId]);
+
+  // звук вступления: играет, пока экран открыт; «Дальше» плавно обрывает его
+  useEffect(() => { play('intro'); return () => stop('intro'); }, [sc.eventId]);
 
   // вода: анимация; при «уменьшить движение» — один неподвижный кадр
   useEffect(() => {
@@ -84,7 +88,7 @@ export function Intro({ g, d, onNext }: { g: Game; d: GameData; onNext: () => vo
         </div>
       </div>
       <div class="intro-body"><p>{ev.flavor}</p></div>
-      <button class="intro-next" ref={btnRef} onClick={onNext} aria-label="Дальше">
+      <button class="intro-next" data-snd="intro-next" ref={btnRef} onClick={onNext} aria-label="Дальше">
         <CompassIcon />
       </button>
     </div>

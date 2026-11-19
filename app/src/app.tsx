@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { eventById, loadData, type GameData } from './data';
 import * as E from './engine/game';
 import type { Game } from './engine/game';
 import { downloadJson, store, type Saved } from './store';
-import { ResultCard, Sheet, ShipBar } from './ui';
+import { ResultCard, Sheet, ShipBar, SoundToggle } from './ui';
+import { playLater } from './sound';
 import { Episode } from './screens/Episode';
 import { Journal } from './screens/Journal';
 import { Reference } from './screens/Reference';
@@ -25,6 +26,40 @@ export function App() {
   useEffect(() => { loadData().then(setD, (e) => setLoadErr(String(e))); }, []);
   useEffect(() => { store.saveCurrent(g, hist); }, [g, hist]);
 
+  // Звуки смены экранов, шторок и событий партии (нажатия кнопок озвучены в sound.ts).
+  const prevScreen = useRef('');
+  const prevSheet = useRef<typeof sheet>(null);
+  const prevM = useRef<number | null>(g?.ship.M ?? null);
+  const prevBattle = useRef(g?.battle?.result ?? null);
+  const quiet = useRef<Game | null>(null); // состояние, после которого Ропот молчит (отмена, ручная правка)
+  useEffect(() => {
+    const key = view === 'game' && g ? `${g.step}|${g.scene?.intro ? 'i' : ''}` : view;
+    const prev = prevScreen.current;
+    prevScreen.current = key;
+    if (!prev || prev === key) return;
+    if (view !== 'game' || !g) { playLater('step'); return; }
+    if (g.step === 'over') { playLater(g.over?.win ? 'win' : 'lose', 150); return; }
+    if (g.step === 'map') { playLater('map'); return; }
+    if (g.scene?.intro || g.step === 'battle') return; // вступление играет само, бой звучит с кнопки «К бою!»
+    if (prev.startsWith('plan') && g.step === 'actions') return; // уже звучат кубики
+    playLater('step');
+  }, [view, g?.step, g?.scene?.intro]);
+  useEffect(() => {
+    if (sheet && !prevSheet.current) playLater('sheet-open', 30);
+    else if (!sheet && prevSheet.current) playLater('sheet-close', 30);
+    prevSheet.current = sheet;
+  }, [sheet]);
+  useEffect(() => {
+    const m = g?.ship.M ?? null;
+    if (prevM.current !== null && m !== null && m > prevM.current && quiet.current !== g) playLater('murmur', 150);
+    prevM.current = m;
+  }, [g]);
+  useEffect(() => {
+    const r = g?.battle?.result ?? null;
+    if (r && r !== prevBattle.current) playLater(r === 'lose' ? 'lose' : 'win', 200);
+    prevBattle.current = r;
+  }, [g?.battle?.result]);
+
   if (loadErr) return <main><p class="warn">{loadErr}</p></main>;
   if (!d) return <main><p class="hint">Загрузка…</p></main>;
 
@@ -38,10 +73,11 @@ export function App() {
   };
   const undo = () => {
     if (!hist.length) return;
+    quiet.current = hist[hist.length - 1];
     setG(hist[hist.length - 1]);
     setHist(hist.slice(0, -1));
   };
-  const startGame = (ng: Game) => { setG(ng); setHist([]); setView('game'); setSheet(null); };
+  const startGame = (ng: Game) => { quiet.current = ng; setG(ng); setHist([]); setView('game'); setSheet(null); };
 
   if (view === 'home' || !g && view === 'game') {
     return (
@@ -86,13 +122,13 @@ export function App() {
   return (
     <main class="game">
       <header class="top">
-        <ShipBar ship={g.ship} onAdjust={(k, dl) => act((x) => E.adjust(x, k, dl))} />
+        <ShipBar ship={g.ship} onAdjust={(k, dl) => act((x) => (quiet.current = E.adjust(x, k, dl)))} />
         <nav>
-          <button onClick={undo} disabled={!hist.length} title="Отменить последний шаг">↶ Отмена</button>
+          <button data-snd="undo" onClick={undo} disabled={!hist.length} title="Отменить последний шаг">↶ Отмена</button>
           <span class="round">Раунд {g.round}</span>
-          <button onClick={() => setSheet('ref')} aria-label="Справка">📖</button>
-          <button onClick={() => setSheet('journal')} aria-label="Судовой журнал">📜</button>
-          <button onClick={() => setSheet('menu')} aria-label="Меню">☰</button>
+          <button data-snd="none" onClick={() => setSheet('ref')} aria-label="Справка">📖</button>
+          <button data-snd="none" onClick={() => setSheet('journal')} aria-label="Судовой журнал">📜</button>
+          <button data-snd="none" onClick={() => setSheet('menu')} aria-label="Меню">☰</button>
         </nav>
       </header>
 
@@ -120,7 +156,7 @@ export function App() {
           <h2>{g.over.win ? 'Победа!' : 'Конец рейса'}</h2>
           <p class="big">{g.over.reason}</p>
           {g.over.win && <p>Каждый читает концовку по числу пережитых Искр: 5 — Упокоился, 3–4 — Остался, 0–2 — Развеялся. Начинает самый славный.</p>}
-          {!g.over.win && hist.length > 0 && <button class="wide" onClick={undo}>↶ Ошиблись вводом? Отменить шаг</button>}
+          {!g.over.win && hist.length > 0 && <button class="wide" data-snd="undo" onClick={undo}>↶ Ошиблись вводом? Отменить шаг</button>}
           {g.over.win && g.scene?.kind === 'port' && <button class="wide" onClick={() => act(E.continueAfterWin)}>Играть дальше в порту</button>}
           <button class="primary wide" onClick={() => setView('setup')}>Новая партия</button>
         </section>
@@ -131,8 +167,9 @@ export function App() {
       {sheet === 'menu' && (
         <Sheet title={`«${g.shipName}»`} onClose={() => setSheet(null)}>
           <label class="check"><input type="checkbox" checked={g.timerOn} onChange={() => setG({ ...g, timerOn: !g.timerOn })} /> Таймер планирования</label>
-          <button class="wide" onClick={() => { store.putSave(g); setSaves(store.listSaves()); alert('Сохранено на этом телефоне.'); }}>Сохранить в список</button>
-          <button class="wide" onClick={() => downloadJson(`партия-${g.shipName}-р${g.round}.json`, g)}>Сохранить в файл</button>
+          <SoundToggle />
+          <button class="wide" data-snd="save" onClick={() => { store.putSave(g); setSaves(store.listSaves()); alert('Сохранено на этом телефоне.'); }}>Сохранить в список</button>
+          <button class="wide" data-snd="save" onClick={() => downloadJson(`партия-${g.shipName}-р${g.round}.json`, g)}>Сохранить в файл</button>
           {g.step !== 'map' && g.step !== 'over' && <button class="wide" onClick={() => { if (confirm('Бросить эпизод и вернуться на карту?')) { act((x) => ({ ...x, scene: null, battle: null, step: 'map', last: null })); setSheet(null); } }}>Вернуться на карту</button>}
           <button class="wide" onClick={() => { setView('home'); setSheet(null); }}>Главное меню</button>
           <p class="ver">контент {d.version} · сохранение {g.contentVersion}</p>

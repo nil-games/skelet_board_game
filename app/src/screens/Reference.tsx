@@ -32,7 +32,7 @@ export function ShopRef({ d, onBuy }: { d: GameData; onBuy?: (name: string, eff:
             {col.items.map((it) => (
               <li key={it.name}>
                 <span class="price">{it.price}Д</span> <b>{it.name}</b> — {it.text}
-                {onBuy && SHIP_GOODS[it.name] && <button class="buy" onClick={() => onBuy(it.name, SHIP_GOODS[it.name])}>купить</button>}
+                {onBuy && SHIP_GOODS[it.name] && <button class="buy" data-snd="buy" onClick={() => onBuy(it.name, SHIP_GOODS[it.name])}>купить</button>}
               </li>
             ))}
           </ol>
@@ -61,7 +61,7 @@ export function Reference({ d }: { d: GameData }) {
   const [tab, setTab] = useState<(typeof TABS)[number]>('Основное');
   return (
     <div>
-      <div class="tabs">{TABS.map((t) => <button key={t} class={t === tab ? 'sel' : ''} onClick={() => setTab(t)}>{t}</button>)}</div>
+      <div class="tabs">{TABS.map((t) => <button key={t} data-snd="tab" class={t === tab ? 'sel' : ''} onClick={() => setTab(t)}>{t}</button>)}</div>
       {tab === 'Основное' && (
         <div class="ref">
           <h5>Проверка</h5>

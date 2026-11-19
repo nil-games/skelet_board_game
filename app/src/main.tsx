@@ -4,5 +4,7 @@ import '@fontsource/yeseva-one/400.css';
 import '@fontsource/pt-serif/400.css';
 import '@fontsource/pt-serif/700.css';
 import './style.css';
+import { initSound } from './sound';
 
+initSound();
 render(<App />, document.getElementById('app')!);

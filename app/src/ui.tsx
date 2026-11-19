@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 import type { Eff } from './data';
 import { effName, fmtEff, SHIP_KEYS, type Ship, type ShipKey } from './engine/effects';
 import type { Result } from './engine/game';
+import { setSoundOn, soundOn } from './sound';
 
 const ICON_KEY: Record<string, string> = { RT: 'R', catch: 'fish', mv: 'map', sc: 'map' };
 
@@ -35,8 +36,8 @@ export function ShipBar({ ship, onAdjust }: { ship: Ship; onAdjust: (k: ShipKey,
       {open && (
         <div class="adjust">
           <span>Правка: {effName(open)}</span>
-          <button onClick={() => onAdjust(open, -1)}>−1</button>
-          <button onClick={() => onAdjust(open, +1)}>+1</button>
+          <button data-snd="minus" onClick={() => onAdjust(open, -1)}>−1</button>
+          <button data-snd="plus" onClick={() => onAdjust(open, +1)}>+1</button>
           <button class="ghost" onClick={() => setOpen(null)}>✓</button>
         </div>
       )}
@@ -77,9 +78,18 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
 export function Stepper({ value, onChange, min = 0, max = 30 }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
     <span class="stepper">
-      <button onClick={() => onChange(Math.max(min, value - 1))}>−</button>
+      <button data-snd="stepper" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
       <b>{value}</b>
-      <button onClick={() => onChange(Math.min(max, value + 1))}>+</button>
+      <button data-snd="stepper" onClick={() => onChange(Math.min(max, value + 1))}>+</button>
     </span>
+  );
+}
+
+export function SoundToggle() {
+  const [on, setOn] = useState(soundOn());
+  return (
+    <label class="check">
+      <input type="checkbox" checked={on} onChange={() => { setSoundOn(!on); setOn(!on); }} /> Звуки
+    </label>
   );
 }

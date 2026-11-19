@@ -11,7 +11,7 @@ export function Journal({ g, onSet }: { g: Game; onSet: (row: number, v: number)
             <tr key={r}>
               <th>{name}</th>
               {[1, 2, 3, 4, 5, 6].map((c) => (
-                <td key={c}><button class={g.journal[r] >= c ? 'on' : ''} aria-label={`${name} ${c}`} onClick={() => onSet(r, g.journal[r] === c ? c - 1 : c)}>{c}</button></td>
+                <td key={c}><button data-snd="journal" class={g.journal[r] >= c ? 'on' : ''} aria-label={`${name} ${c}`} onClick={() => onSet(r, g.journal[r] === c ? c - 1 : c)}>{c}</button></td>
               ))}
             </tr>
           ))}

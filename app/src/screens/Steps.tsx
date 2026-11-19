@@ -59,7 +59,7 @@ export function BattlePrep({ g, d, onStart }: { g: Game; d: GameData; onStart: (
       <label class="check"><input type="checkbox" checked={up.shields} onChange={() => tog('shields')} /> Щиты: первый залп −1</label>
       <label class="check"><input type="checkbox" checked={up.tooth} onChange={() => tog('tooth')} /> Зуб кита (диковинка): враг −2</label>
       <p class="hint small">Смазка, Парусина, Медный нос, Смола учитывайте сами при подсчёте хода.</p>
-      <button class="primary wide" onClick={() => onStart(up)}>К бою!</button>
+      <button class="primary wide" data-snd="battle-start" onClick={() => onStart(up)}>К бою!</button>
     </section>
   );
 }
@@ -84,7 +84,7 @@ export function BattleView({ g, d, onTurn, onFinish }: { g: Game; d: GameData; o
           <div class="field"><span>Урон врагу (Пушки + Таран)</span><Stepper value={t.damage} onChange={(v) => setT({ ...t, damage: v })} /></div>
           <label class="check"><input type="checkbox" checked={t.dodge} onChange={() => setT({ ...t, dodge: !t.dodge })} /> Руль: сумма ≥ {b.helm} (залп мимо)</label>
           <div class="field"><span>Трюм: Корпус +</span><Stepper value={t.repair} max={5} onChange={(v) => setT({ ...t, repair: v })} /></div>
-          <button class="primary wide" onClick={() => { onTurn(t); setT({ damage: 0, dodge: false, repair: 0 }); }}>Завершить ход</button>
+          <button class="primary wide" data-snd="hit" onClick={() => { onTurn(t); setT({ damage: 0, dodge: false, repair: 0 }); }}>Завершить ход</button>
         </div>
       ) : (
         <div class="turn">
@@ -148,8 +148,8 @@ export function After({ g, d, onNext, onSpend }: { g: Game; d: GameData; onNext:
     <section>
       <h2>Конец раунда</h2>
       <div class="row">
-        <button disabled={!canSpend} onClick={() => onSpend('scout')}>Разведка за ром (Ром −1)</button>
-        {opts.includes('leave') && <button disabled={!canSpend || g.fullSpeed} onClick={() => onSpend('speed')}>Полный вперёд (Ром −1)</button>}
+        <button data-snd="rum" disabled={!canSpend} onClick={() => onSpend('scout')}>Разведка за ром (Ром −1)</button>
+        {opts.includes('leave') && <button data-snd="rum" disabled={!canSpend || g.fullSpeed} onClick={() => onSpend('speed')}>Полный вперёд (Ром −1)</button>}
       </div>
       {!canSpend && <p class="hint small">Ром 0: траты по желанию недоступны.</p>}
       {opts.includes('circle') && (
