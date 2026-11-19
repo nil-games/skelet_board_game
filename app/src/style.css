@@ -223,3 +223,6 @@ input, select { min-height: 44px; padding: 6px 10px; border-radius: 8px; border:
 .settings .check { min-height: 40px; }
 .timer-pick { margin-top: 4px; flex-wrap: wrap; }
 .seg.wide button { width: auto; min-width: 52px; padding: 8px 10px; }
+.top nav { gap: 5px; }
+.top nav .round { white-space: nowrap; font-size: .82rem; }
+.top nav button { padding: 4px 9px; }

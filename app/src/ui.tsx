@@ -1,9 +1,12 @@
 import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
 import type { Eff } from './data';
-import { effName, fmtEff, SHIP_KEYS, type Ship, type ShipKey } from './engine/effects';
+import { effName, fmtEff, type Ship, type ShipKey } from './engine/effects';
 import type { Result } from './engine/game';
 import { TIMER_OPTIONS, updateSettings, useSettings } from './settings';
+
+/** Порядок шкал на верхней панели: Ром — самый правый. */
+const BAR_ORDER: ShipKey[] = ['H', 'C', 'M', 'R'];
 
 const ICON_KEY: Record<string, string> = { RT: 'R', catch: 'fish', mv: 'map', sc: 'map' };
 
@@ -26,7 +29,7 @@ export function ShipBar({ ship, onAdjust }: { ship: Ship; onAdjust: (k: ShipKey,
   const danger = (k: ShipKey) => (k === 'M' ? ship.M >= ship.C - 1 : k === 'R' ? ship.R === 0 : ship[k] <= 2);
   return (
     <div class="shipbar">
-      {SHIP_KEYS.map((k) => (
+      {BAR_ORDER.map((k) => (
         <button key={k} class={'scale' + (danger(k) ? ' danger' : '') + (open === k ? ' sel' : '')} onClick={() => setOpen(open === k ? null : k)} aria-label={effName(k)}>
           <Icon k={k} size={22} />
           <b>{ship[k]}</b>

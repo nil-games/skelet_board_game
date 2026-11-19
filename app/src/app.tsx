@@ -3,11 +3,11 @@ import { eventById, loadData, type GameData } from './data';
 import * as E from './engine/game';
 import type { Game } from './engine/game';
 import { downloadJson, store, type Saved } from './store';
-import { ResultCard, Sheet, ShipBar, SettingsList } from './ui';
+import { Icon, ResultCard, Sheet, ShipBar, SettingsList } from './ui';
 import { playLater } from './sound';
 import { Episode } from './screens/Episode';
 import { Journal } from './screens/Journal';
-import { Reference } from './screens/Reference';
+import { ItemsRef, Reference } from './screens/Reference';
 import { Home, Setup } from './screens/Setup';
 import { Intro } from './screens/Intro';
 import { After, BattlePrep, BattleView, Flashback, MapStep } from './screens/Steps';
@@ -20,7 +20,7 @@ export function App() {
   const [g, setG] = useState<Game | null>(() => store.loadCurrent());
   const [hist, setHist] = useState<Game[]>(() => store.loadHistory());
   const [view, setView] = useState<View>('home');
-  const [sheet, setSheet] = useState<null | 'ref' | 'journal' | 'menu'>(null);
+  const [sheet, setSheet] = useState<null | 'ref' | 'items' | 'journal' | 'menu'>(null);
   const [saves, setSaves] = useState<Saved[]>(() => store.listSaves());
 
   useEffect(() => { loadData().then(setD, (e) => setLoadErr(String(e))); }, []);
@@ -126,7 +126,8 @@ export function App() {
         <nav>
           <button data-snd="undo" onClick={undo} disabled={!hist.length} title="Отменить последний шаг">↶ Отмена</button>
           <span class="round">Раунд {g.round}</span>
-          <button data-snd="none" onClick={() => setSheet('ref')} aria-label="Справка">📖</button>
+          <button data-snd="none" onClick={() => setSheet('ref')} aria-label="Правила">📖</button>
+          <button data-snd="none" onClick={() => setSheet('items')} aria-label="Предметы и товары"><Icon k="gear" size={20} title="Предметы" /></button>
           <button data-snd="none" onClick={() => setSheet('journal')} aria-label="Судовой журнал">📜</button>
           <button data-snd="none" onClick={() => setSheet('menu')} aria-label="Меню">☰</button>
         </nav>
@@ -162,7 +163,8 @@ export function App() {
         </section>
       )}
 
-      {sheet === 'ref' && <Sheet title="Справка" onClose={() => setSheet(null)}><Reference d={d} /></Sheet>}
+      {sheet === 'ref' && <Sheet title="Правила" onClose={() => setSheet(null)}><Reference d={d} /></Sheet>}
+      {sheet === 'items' && <Sheet title="Предметы и товары" onClose={() => setSheet(null)}><ItemsRef d={d} /></Sheet>}
       {sheet === 'journal' && <Sheet title="Судовой журнал" onClose={() => setSheet(null)}><Journal g={g} onSet={(r, v) => act((x) => E.setJournal(x, r, v))} /></Sheet>}
       {sheet === 'menu' && (
         <Sheet title={`«${g.shipName}»`} onClose={() => setSheet(null)}>

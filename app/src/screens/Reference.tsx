@@ -42,20 +42,28 @@ export function ShopRef({ d, onBuy }: { d: GameData; onBuy?: (name: string, eff:
   );
 }
 
-export function CasinoRef({ d }: { d: GameData }) {
+function TricksList({ d }: { d: GameData }) {
+  return (
+    <>
+      <h5>Шуллерские штучки</h5>
+      <p class="small">{d.casinoRule}</p>
+      <ul class="goods">{d.casinoUpgrades.map((u) => <li key={u.name}><span class="price">{u.price}Д</span> <b>{u.name}</b> — {u.text}</li>)}</ul>
+    </>
+  );
+}
+
+export function CasinoRef({ d, withTricks = true }: { d: GameData; withTricks?: boolean }) {
   return (
     <div>
       <p class="small">Крэпс: два кубика. Первый бросок 7 или 11 — победа, 2, 3 или 12 — проигрыш, иначе число становится Целью; бросайте, пока не выпадет Цель (победа) или 7 (проигрыш).</p>
       <p class="small">{d.betRules}</p>
       <table class="tbl"><tbody>{d.bets.map((b, i) => <tr key={b.name}><td>№{i + 1}</td><td>{b.ratio}</td><td><b>{b.name}</b><br /><span class="small">{b.text}</span></td></tr>)}</tbody></table>
-      <h5>Шуллерские штучки</h5>
-      <p class="small">{d.casinoRule}</p>
-      <ul class="goods">{d.casinoUpgrades.map((u) => <li key={u.name}><span class="price">{u.price}Д</span> <b>{u.name}</b> — {u.text}</li>)}</ul>
+      {withTricks && <TricksList d={d} />}
     </div>
   );
 }
 
-const TABS = ['Основное', 'Магазин', 'Диковинки', 'Рыбалка', 'Бой', 'Игорный дом'] as const;
+const TABS = ['Основное', 'Бой', 'Игорный дом'] as const;
 
 export function Reference({ d }: { d: GameData }) {
   const [tab, setTab] = useState<(typeof TABS)[number]>('Основное');
@@ -82,11 +90,6 @@ export function Reference({ d }: { d: GameData }) {
           <p>{d.terrains.map((t) => `${t.d6} ${t.sym} ${t.name}`).join(' · ')}</p>
         </div>
       )}
-      {tab === 'Магазин' && <ShopRef d={d} />}
-      {tab === 'Диковинки' && (
-        <ul class="goods">{Object.entries(d.curios).map(([n, c]) => <li key={n}><span class="price">{c.price}Д</span> <b>{n}</b> — {c.text} <i>Поминки: {c.sparks} ✦</i></li>)}</ul>
-      )}
-      {tab === 'Рыбалка' && (<><p class="small">{d.fishSlot.note}</p><CatchTable d={d} /></>)}
       {tab === 'Бой' && (
         <div class="ref">
           <p>Ходящий бросает 5 кубиков, один переброс любых (+1 за Удачу), раскладывает по станциям:</p>
@@ -99,7 +102,47 @@ export function Reference({ d }: { d: GameData }) {
           <p>Навык станции ≥3 и станция сработала — эффект +1. Нанёс 3+ урона — Слава +1. Враг стреляет после каждого хода.</p>
         </div>
       )}
-      {tab === 'Игорный дом' && <CasinoRef d={d} />}
+      {tab === 'Игорный дом' && <CasinoRef d={d} withTricks={false} />}
+    </div>
+  );
+}
+
+const cap = (t: string) => t.charAt(0) + t.slice(1).toLowerCase();
+
+/** Справка по предметам: столбцы магазина, шуллерские штучки, рыба. */
+export function ItemsRef({ d }: { d: GameData }) {
+  const tabs = [...d.shop.map((c) => cap(c.col)), 'Штучки', 'Рыба'];
+  const [tab, setTab] = useState(tabs[0]);
+  const col = d.shop.find((c) => cap(c.col) === tab);
+  return (
+    <div>
+      <div class="tabs">{tabs.map((t) => <button key={t} data-snd="tab" class={t === tab ? 'sel' : ''} onClick={() => setTab(t)}>{t}</button>)}</div>
+      {col && (
+        <>
+          <p class="hint small">
+            {col.col === 'ВСЕГДА В НАЛИЧИИ'
+              ? 'Есть в любом магазине без ограничений.'
+              : 'На этот столбец бросьте d6: выпавший номер есть в продаже, в одном экземпляре.'}
+            {' '}Покупок сколько угодно, складчина разрешена. Продажа: половина цены, округлите вниз (не меньше 1).
+          </p>
+          <ol class="goods">
+            {col.items.map((it) => (
+              <li key={it.name}><span class="price">{it.price}Д</span> <b>{it.name}</b> — {it.text}</li>
+            ))}
+          </ol>
+        </>
+      )}
+      {tab === 'Штучки' && <TricksList d={d} />}
+      {tab === 'Рыба' && (
+        <>
+          <p class="small">{d.fishSlot.note}</p>
+          <CatchTable d={d} />
+          <p class="hint small">В скобках цена в монетах. Рыба лежит на корабле и продаётся в порту по правилам этого порта:</p>
+          <ul class="goods">
+            {Object.values(d.ports).map((p) => <li key={p.id}><b>{p.title}</b>: {p.fish ?? '—'}</li>)}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
