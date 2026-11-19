@@ -7,6 +7,7 @@ import { fmtEff } from '../engine/effects';
 import { Entities, Icon, ResultCard } from '../ui';
 import { CatchTable, ShopRef, CasinoRef } from './Reference';
 import { play } from '../sound';
+import { useSettings } from '../settings';
 
 interface Props {
   g: Game;
@@ -87,6 +88,7 @@ function slotNumbers(isPort: boolean, slots: Slot[]): number[] {
 
 function Planning({ g, onStart, onTimeout }: { g: Game; onStart: () => void; onTimeout: () => void }) {
   const [left, setLeft] = useState<number | null>(null);
+  const { timer } = useSettings();
   useEffect(() => {
     if (left === null) return;
     if (left === 0) { play('timeout'); return; }
@@ -97,9 +99,9 @@ function Planning({ g, onStart, onTimeout }: { g: Game; onStart: () => void; onT
   return (
     <div class="planning">
       <p class="hint">Планирование: по убыванию Славы каждый ставит кубик на слот. Исходы не читаются до фазы действий.</p>
-      {g.timerOn && (
+      {timer > 0 && (
         <div class="timer">
-          {left === null && <button onClick={() => setLeft(60)}>⏱ Таймер 60 с</button>}
+          {left === null && <button onClick={() => setLeft(timer)}>⏱ Таймер {timer} с</button>}
           {left !== null && left > 0 && <span class={'count' + (left <= 10 ? ' low' : '')}>{left}</span>}
           {left === 0 && <button class="bad" onClick={() => { onTimeout(); setLeft(null); }}>Время вышло: Ропот +1</button>}
           {left !== null && left > 0 && <button class="ghost" onClick={() => setLeft(null)}>стоп</button>}

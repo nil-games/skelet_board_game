@@ -131,7 +131,7 @@ export function Flashback({ g, onChoice, onDone }: { g: Game; onChoice: (player:
       <ul class="players">
         {g.players.map((p) => (
           <li key={p.name}>
-            <span class="dot" style={{ background: p.color }} /> {p.name}
+            {p.name}
             {done.includes(p.name) ? <span class="ok">✓ пережито</span> : <button onClick={() => setWho(p.name)}>Вспомнить</button>}
           </li>
         ))}

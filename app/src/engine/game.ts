@@ -6,7 +6,7 @@ import { applyShip, clamp, defeat, fmtEff, personalPart, sumEff, type Ship, type
 export type Rng = () => number;
 export const d6 = (rng: Rng) => 1 + Math.floor(rng() * 6);
 
-export interface Player { name: string; color: string }
+export interface Player { name: string }
 export interface Play { slot: number; pick: number; eff: Eff; personal: Eff; text: string; title: string }
 export interface Island { no: number; kind: 'port' | 'wild'; id: string }
 export interface Scene {
@@ -57,7 +57,6 @@ export interface Game {
   log: LogEntry[];
   last: Result | null;
   over: { win: boolean; reason: string } | null;
-  timerOn: boolean;
   fullSpeed: boolean;
 }
 
@@ -88,7 +87,6 @@ export function newGame(d: GameData, cfg: NewGameCfg): Game {
     log: [{ round: 1, text: `Корабль «${cfg.shipName.trim() || 'Блюющий скелет'}» вышел в море. Скелетов: ${cfg.players.length}.` }],
     last: null,
     over: null,
-    timerOn: true,
     fullSpeed: false,
   };
 }

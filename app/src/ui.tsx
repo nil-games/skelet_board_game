@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import type { Eff } from './data';
 import { effName, fmtEff, SHIP_KEYS, type Ship, type ShipKey } from './engine/effects';
 import type { Result } from './engine/game';
-import { setSoundOn, soundOn } from './sound';
+import { TIMER_OPTIONS, updateSettings, useSettings } from './settings';
 
 const ICON_KEY: Record<string, string> = { RT: 'R', catch: 'fish', mv: 'map', sc: 'map' };
 
@@ -85,11 +85,22 @@ export function Stepper({ value, onChange, min = 0, max = 30 }: { value: number;
   );
 }
 
-export function SoundToggle() {
-  const [on, setOn] = useState(soundOn());
+/** Список настроек: на главном экране и в меню партии. */
+export function SettingsList() {
+  const st = useSettings();
+  const row = (label: string, key: 'music' | 'sounds' | 'voice') => (
+    <label class="check"><input type="checkbox" checked={st[key]} onChange={() => updateSettings({ [key]: !st[key] })} /> {label}</label>
+  );
   return (
-    <label class="check">
-      <input type="checkbox" checked={on} onChange={() => { setSoundOn(!on); setOn(!on); }} /> Звуки
-    </label>
+    <div class="settings">
+      {row('Фоновая музыка', 'music')}
+      {row('Звуки', 'sounds')}
+      {row('Озвучка', 'voice')}
+      <div class="field timer-pick"><span>Таймер планирования</span>
+        <span class="seg wide">
+          {TIMER_OPTIONS.map((t) => <button key={t} class={t === st.timer ? 'sel' : ''} onClick={() => updateSettings({ timer: t })}>{t ? `${t} с` : 'выкл'}</button>)}
+        </span>
+      </div>
+    </div>
   );
 }

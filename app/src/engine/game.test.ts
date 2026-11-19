@@ -5,7 +5,7 @@ import { applyShip, thirst } from './effects';
 import * as E from './game';
 
 const d: GameData = JSON.parse(readFileSync(new URL('../../public/game_data.json', import.meta.url), 'utf-8'));
-const players = (n: number) => Array.from({ length: n }, (_, i) => ({ name: `P${i + 1}`, color: '#000' }));
+const players = (n: number) => Array.from({ length: n }, (_, i) => ({ name: `P${i + 1}` }));
 const seq = (...xs: number[]) => { let i = 0; return () => xs[i++ % xs.length]; };
 const fresh = (n = 4) => E.newGame(d, { shipName: 'Тест', players: players(n) });
 const withEvent = (id: string, terrain = 's'): E.Game => ({ ...fresh(), scene: { kind: 'sea' as const, eventId: id, terrain, island: null, circle: 1, plays: [], shipLeft: false, exclFrom: null }, step: 'actions' as const });

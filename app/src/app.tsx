@@ -3,7 +3,7 @@ import { eventById, loadData, type GameData } from './data';
 import * as E from './engine/game';
 import type { Game } from './engine/game';
 import { downloadJson, store, type Saved } from './store';
-import { ResultCard, Sheet, ShipBar, SoundToggle } from './ui';
+import { ResultCard, Sheet, ShipBar, SettingsList } from './ui';
 import { playLater } from './sound';
 import { Episode } from './screens/Episode';
 import { Journal } from './screens/Journal';
@@ -104,7 +104,7 @@ export function App() {
           onCancel={() => setView('home')}
           onStart={(cfg) => {
             if (g && !confirm('Начать новую партию? Текущая останется только если вы её сохранили.')) return;
-            startGame({ ...E.newGame(d, cfg), timerOn: cfg.timerOn });
+            startGame(E.newGame(d, cfg));
           }}
         />
       </main>
@@ -166,8 +166,7 @@ export function App() {
       {sheet === 'journal' && <Sheet title="Судовой журнал" onClose={() => setSheet(null)}><Journal g={g} onSet={(r, v) => act((x) => E.setJournal(x, r, v))} /></Sheet>}
       {sheet === 'menu' && (
         <Sheet title={`«${g.shipName}»`} onClose={() => setSheet(null)}>
-          <label class="check"><input type="checkbox" checked={g.timerOn} onChange={() => setG({ ...g, timerOn: !g.timerOn })} /> Таймер планирования</label>
-          <SoundToggle />
+          <SettingsList />
           <button class="wide" data-snd="save" onClick={() => { store.putSave(g); setSaves(store.listSaves()); alert('Сохранено на этом телефоне.'); }}>Сохранить в список</button>
           <button class="wide" data-snd="save" onClick={() => downloadJson(`партия-${g.shipName}-р${g.round}.json`, g)}>Сохранить в файл</button>
           {g.step !== 'map' && g.step !== 'over' && <button class="wide" onClick={() => { if (confirm('Бросить эпизод и вернуться на карту?')) { act((x) => ({ ...x, scene: null, battle: null, step: 'map', last: null })); setSheet(null); } }}>Вернуться на карту</button>}
