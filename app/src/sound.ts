@@ -132,9 +132,17 @@ export function initSound() {
     if ((id as string) !== 'none') play(id);
   }, true);
 
-  // Недоступные кнопки (disabled) не дают click, поэтому ловим касание.
+  // Недоступные кнопки (disabled) не дают click, поэтому ловим тап сами. Скрип только на настоящий тап:
+  // если палец сдвинулся (прокрутка) или касание отменено браузером, звука нет.
+  let tap: { btn: HTMLElement; x: number; y: number; t: number } | null = null;
   document.addEventListener('pointerdown', (e) => {
     const btn = (e.target as HTMLElement | null)?.closest('button');
-    if (btn && (btn as HTMLButtonElement).disabled && btn.dataset.snd !== 'none') play('btn-denied');
+    tap = btn && (btn as HTMLButtonElement).disabled && btn.dataset.snd !== 'none' ? { btn, x: e.clientX, y: e.clientY, t: performance.now() } : null;
   }, true);
+  document.addEventListener('pointerup', (e) => {
+    const t = tap;
+    tap = null;
+    if (t && Math.hypot(e.clientX - t.x, e.clientY - t.y) < 10 && performance.now() - t.t < 600) play('btn-denied');
+  }, true);
+  document.addEventListener('pointercancel', () => { tap = null; }, true);
 }
