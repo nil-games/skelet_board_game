@@ -188,7 +188,7 @@ export function startActions(g: Game): Game {
 
 export function planTimeout(g: Game, d: GameData): Game {
   const { ship, delta } = applyShip(d, g.ship, { M: 1 });
-  return checkOver({ ...g, ship, last: { title: 'Тайм-аут', text: 'Время вышло, а кто-то не выбрал.', ship: delta, personal: {}, notes: [] }, log: log(g, 'Тайм-аут планирования: Ропот +1') });
+  return checkOver({ ...g, ship, last: { title: 'Тайм-аут', text: 'Не успели расставить кубики.', ship: delta, personal: {}, notes: [] }, log: log(g, 'Тайм-аут планирования: Ропот +1') });
 }
 
 function checkOver(g: Game): Game {

@@ -226,3 +226,5 @@ input, select { min-height: 44px; padding: 6px 10px; border-radius: 8px; border:
 .top nav { gap: 5px; }
 .top nav .round { white-space: nowrap; font-size: .82rem; }
 .top nav button { padding: 4px 9px; }
+.timer { justify-content: center; }
+.timeout-msg { margin: 6px 0; text-align: center; font-weight: 700; color: var(--bad); }

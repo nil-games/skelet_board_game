@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import type { GameData, Slot } from '../data';
 import { slotEntities } from '../engine/effects';
@@ -86,28 +86,32 @@ function slotNumbers(isPort: boolean, slots: Slot[]): number[] {
   return [...ns].sort((a, b) => a - b);
 }
 
-function Planning({ g, onStart, onTimeout }: { g: Game; onStart: () => void; onTimeout: () => void }) {
-  const [left, setLeft] = useState<number | null>(null);
+function Planning({ onStart, onTimeout }: { g: Game; onStart: () => void; onTimeout: () => void }) {
   const { timer } = useSettings();
+  const [left, setLeft] = useState<number | null>(null);   // секунд осталось; null — выбор ещё не начат
+  const [expired, setExpired] = useState(false);
+  const fired = useRef(false);
   useEffect(() => {
     if (left === null) return;
-    if (left === 0) { play('timeout'); return; }
+    if (left === 0) {
+      // время вышло: Ропот +1 и звук срабатывают сами, один раз
+      if (!fired.current) { fired.current = true; play('timeout'); onTimeout(); setExpired(true); }
+      return;
+    }
     play('tick');
     const t = setTimeout(() => setLeft(left - 1), 1000);
     return () => clearTimeout(t);
   }, [left]);
+  const useTimer = timer > 0;
+  const idle = useTimer && left === null;
   return (
     <div class="planning">
       <p class="hint">Планирование: по убыванию Славы каждый ставит кубик на слот. Исходы не читаются до фазы действий.</p>
-      {timer > 0 && (
-        <div class="timer">
-          {left === null && <button onClick={() => setLeft(timer)}>⏱ Таймер {timer} с</button>}
-          {left !== null && left > 0 && <span class={'count' + (left <= 10 ? ' low' : '')}>{left}</span>}
-          {left === 0 && <button class="bad" onClick={() => { onTimeout(); setLeft(null); }}>Время вышло: Ропот +1</button>}
-          {left !== null && left > 0 && <button class="ghost" onClick={() => setLeft(null)}>стоп</button>}
-        </div>
-      )}
-      <button class="primary wide" data-snd="dice" onClick={onStart}>Кубики расставлены → действия</button>
+      {useTimer && left !== null && left > 0 && <div class="timer"><span class={'count' + (left <= 10 ? ' low' : '')}>{left}</span></div>}
+      {expired && <p class="timeout-msg">Вы не успели за отведённое время</p>}
+      {idle
+        ? <button class="primary wide" onClick={() => setLeft(timer)}>Начать выбор действий</button>
+        : <button class="primary wide" data-snd="dice" onClick={onStart}>Кубики расставлены → действия</button>}
     </div>
   );
 }
