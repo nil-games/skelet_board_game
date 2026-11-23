@@ -12,11 +12,7 @@ import { Home, Setup } from './screens/Setup';
 import { Intro } from './screens/Intro';
 import { After, BattleView, Flashback, MapStep } from './screens/Steps';
 
-const encounterIds: Record<string, string> = { B1: 'gull', B2: 'galley', B3: 'queen' };
-interface BoardResult {
-  hull: number; team: number; rum: number; murmur: number; log: string[];
-  crew: { n: string; loot: number; luck: number; startLoot: number; startLuck: number; bless: boolean }[];
-}
+import { BoardEncounter } from './screens/BoardEncounter';
 
 type View = 'home' | 'setup' | 'game';
 
@@ -125,25 +121,6 @@ export function App() {
     return <Intro g={g} d={d} onNext={() => act(E.closeIntro)} />;
   }
 
-  if (g.step === 'battle-prep' && g.scene && !missing) {
-    const scene = g.scene;
-    return <iframe title="Морской бой" src="./combat.html" style={{width:'100%', height:'100dvh', border:0}} onLoad={(ev) => {
-      const frame = ev.currentTarget.contentWindow as (Window & { mountCampaign: (options: object) => void });
-      frame.mountCampaign({
-        enemy: encounterIds[scene.eventId], players: g.players, ship: g.ship, saved: scene.board,
-        save: (board: string) => setG(current => current?.scene && current.scene.eventId === scene.eventId
-          ? { ...current, scene: { ...current.scene, board } } : current),
-        finish: (result: BoardResult) => {
-          const ship = { ...g.ship, H: Math.max(0,result.hull), C: result.team, R: result.rum, M: result.murmur };
-          const entries = [...result.log].reverse().map(text => ({round:g.round,text}));
-          const notes = result.crew.map(c => c.n + ' · Сокровища ' + (c.loot-c.startLoot) + ', Удача ' + (c.luck-c.startLuck) + (c.bless ? ', Благословение' : ''));
-          const next = E.endRound({ ...g, ship, scene: {...scene, board:undefined}, log:[...g.log,...entries,{round:g.round,text:notes.join(' / ')}] }, d);
-          act(() => ({...next, last:{title:'Отметьте на листах скелетов',text:'Изменения за бой',personal:{},ship:next.last?.ship ?? {},notes:[...notes,...(next.last?.notes ?? [])]}}));
-        }
-      });
-    }} />;
-  }
-
   return (
     <main class="game">
       <header class="top">
@@ -174,6 +151,7 @@ export function App() {
         />
       )}
 
+      {g.step === 'battle-prep' && g.scene && !missing && <BoardEncounter g={g} d={d} onChange={next => act(() => next)} />}
       {g.step === 'battle' && g.battle && <BattleView g={g} d={d} onTurn={(t) => act((x) => E.battleTurn(x, d, t))} onFinish={() => act((x) => E.finishBattle(x, d))} />}
       {g.step === 'flashback' && <Flashback g={g} onChoice={(p, c) => act((x) => E.flashbackChoice(x, d, p, c))} onDone={() => act(E.finishFlashback)} />}
       {g.step === 'after' && <After g={g} d={d} onNext={(n) => act((x) => E.goNext(x, n))} onSpend={(k) => act((x) => E.spendRum(x, d, k))} />}
