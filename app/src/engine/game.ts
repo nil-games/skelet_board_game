@@ -18,6 +18,7 @@ export interface Scene {
   plays: Play[];
   shipLeft: boolean;          // за раунд получен Ход → корабль покинул клетку
   exclFrom: number | null;    // слоты с номером больше этого не разыгрываются
+  board?: string;             // сохранённая раскладка боя на Борту
   intro?: boolean;            // стартовый экран эпизода ещё не закрыт
 }
 export interface Battle {

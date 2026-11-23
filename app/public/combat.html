@@ -1,0 +1,565 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Морской бой</title>
+<style>
+/* Макет: слева экран приложения (враг, намерение, журнал), справа стол (корабль, кубики, станции «Борта»). На телефоне — одной колонкой. */
+:root{
+  --bg:#E9EEEE; --panel:#FFFFFF; --panel2:#F4F7F7; --ink:#18282B; --muted:#56696B; --line:#C5D1D1; --accent:#0D6B6B; --accent-ink:#FFFFFF;
+  --heart-bg:#F6DADA; --heart-fg:#8E2525; --dmg-bg:#F8E6C6; --dmg-fg:#7A4A08; --loot-bg:#DCEFD2; --loot-fg:#2F5D14;
+  --def-bg:#DCE5EF; --def-fg:#1F4468; --thr-bg:#E8E0F4; --thr-fg:#4A3487; --rew-bg:#D5EFEA; --rew-fg:#0C5249;
+  --ok-bg:#DCEFD2; --ok-fg:#2F5D14; --warn:#9B2C2C; --sel:#0D6B6B;
+  --f-disp:'Alegreya SC', Georgia, serif; --f-body:'PT Sans', 'Segoe UI', Arial, sans-serif; --f-mono:'PT Mono', Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1618; --panel:#162225; --panel2:#1C2B2E; --ink:#E4ECEA; --muted:#93A5A5; --line:#2D3E41; --accent:#49B5AA; --accent-ink:#06201E;
+  --heart-bg:#4A1F22; --heart-fg:#F2B2B2; --dmg-bg:#4A3510; --dmg-fg:#F5CE86; --loot-bg:#23401A; --loot-fg:#BFE3A6;
+  --def-bg:#1E3248; --def-fg:#AFCCEB; --thr-bg:#30264D; --thr-fg:#CDBDF3; --rew-bg:#163D38; --rew-fg:#A3E0D5;
+  --ok-bg:#23401A; --ok-fg:#BFE3A6; --warn:#F09595; --sel:#49B5AA; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1618; --panel:#162225; --panel2:#1C2B2E; --ink:#E4ECEA; --muted:#93A5A5; --line:#2D3E41; --accent:#49B5AA; --accent-ink:#06201E;
+  --heart-bg:#4A1F22; --heart-fg:#F2B2B2; --dmg-bg:#4A3510; --dmg-fg:#F5CE86; --loot-bg:#23401A; --loot-fg:#BFE3A6;
+  --def-bg:#1E3248; --def-fg:#AFCCEB; --thr-bg:#30264D; --thr-fg:#CDBDF3; --rew-bg:#163D38; --rew-fg:#A3E0D5;
+  --ok-bg:#23401A; --ok-fg:#BFE3A6; --warn:#F09595; --sel:#49B5AA; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;padding-block:16px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2{font-family:var(--f-disp);font-weight:700;margin:0;letter-spacing:.02em;text-wrap:balance}
+h1{font-size:28px}
+h2{font-size:19px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between}
+.setup{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+label.f{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:2px}
+select,button{font:inherit;color:var(--ink)}
+select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+button{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:focus-visible,select:focus-visible,.die:focus-visible,.cell:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+button.main{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:14px;align-items:start}
+@media (max-width:860px){.cols{grid-template-columns:minmax(0,1fr)}}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ehead{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.intent{border:2px solid var(--warn);border-radius:12px;padding:10px 12px;background:var(--panel2)}
+.intent b{font-size:17px}
+.intent.skip{border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.cell{min-height:78px;border-radius:9px;border:1px solid var(--line);padding:6px;display:flex;flex-direction:column;gap:2px;font-size:12px;line-height:1.25;position:relative;background:var(--panel2);text-align:left}
+.cell .nm{font-weight:700;font-size:13px}
+.cell .pr{font-family:var(--f-mono);font-size:12px}
+.cell .bd{font-size:11px;opacity:.85}
+.cell.empty{border-style:dashed;background:transparent;color:var(--muted);align-items:center;justify-content:center}
+.k-heart{background:var(--heart-bg);color:var(--heart-fg)}
+.k-dmg{background:var(--dmg-bg);color:var(--dmg-fg)}
+.k-loot{background:var(--loot-bg);color:var(--loot-fg)}
+.k-def{background:var(--def-bg);color:var(--def-fg)}
+.k-thr{background:var(--thr-bg);color:var(--thr-fg)}
+.k-rew{background:var(--rew-bg);color:var(--rew-fg)}
+.cell.closed{opacity:.38}
+.cell.closed .nm{text-decoration:line-through}
+.cell.closed::after{content:"";position:absolute;right:6px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--ink)}
+.cell.hid{background:transparent;border-style:dashed;color:var(--muted)}
+.cell.tgt{cursor:pointer;outline:3px solid var(--sel);outline-offset:1px}
+.cell.no{opacity:.55}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.stat{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
+.stat b{font-family:var(--f-mono);font-size:16px}
+.bar{display:flex;gap:3px}
+.bar i{width:14px;height:14px;border-radius:3px;border:1px solid var(--line);background:var(--panel2)}
+.bar i.f{background:var(--ink)}
+.crew{display:flex;flex-wrap:wrap;gap:6px}
+.cm{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;background:var(--panel2)}
+.cm.act{border-color:var(--ink);font-weight:700}
+.sw{width:18px;height:18px;border-radius:5px;flex:none}
+.tray{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;min-height:70px}
+.dw{display:flex;flex-direction:column;align-items:center;gap:4px}
+.die{width:48px;height:48px;border-radius:10px;color:#fff;font-family:var(--f-mono);font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;border:3px solid transparent;cursor:pointer;user-select:none}
+.die.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--panel) inset}
+.die.used{opacity:.28;cursor:default}
+.die.rest{opacity:.5;border-style:dashed;border-color:var(--muted);font-size:12px}
+.dw small{font-size:11px;color:var(--muted)}
+.dw select{padding:2px 4px;font-size:13px}
+.dw button{padding:2px 6px;font-size:11px}
+.sts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+@media (max-width:520px){.sts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.st{border:1px solid var(--line);border-radius:10px;padding:7px 8px;text-align:left;background:var(--panel2);display:flex;flex-direction:column;gap:2px;min-height:84px}
+.st b{font-size:14px}
+.st .c{font-size:12px;color:var(--muted)}
+.st .e{font-size:12px}
+.st.ok{background:var(--ok-bg);color:var(--ok-fg);border-color:var(--ok-fg);cursor:pointer}
+.st.ok .c{color:inherit}
+.st.done{opacity:.4}
+.pend{border:2px solid var(--sel);border-radius:10px;padding:8px 10px;font-size:14px}
+.log{font-size:13px;color:var(--muted);max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--line);padding-top:8px}
+.log div:first-child{color:var(--ink)}
+.end{border-radius:12px;padding:14px;background:var(--panel2);border:2px solid var(--ink)}
+.end h2{font-size:24px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:700}
+.rules{columns:2 320px;column-gap:28px;font-size:14px;max-width:none}
+.rules p,.rules li{break-inside:avoid}
+.rules ul{padding-left:18px;margin:4px 0 10px}
+.hint{font-size:13px;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){.die{transition:transform .12s}.die:active{transform:scale(.94)}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="tag">Всем костям на борт! · Борт</div>
+      <h1>Морской бой</h1>
+    </div>
+    <div class="setup">
+      <label class="f">Враг<select id="selEnemy"></select></label>
+      <label class="f">Скелетов<select id="selN"><option>4</option><option>5</option><option>6</option></select></label>
+      <label hidden>Урон по клетке<select id="selMode"><option value="th">Порог</option><option value="acc">Копится</option></select></label>
+      <button class="main" id="btnNew">Начать выбранный бой</button> <a href="./">В главное меню</a>
+    </div>
+  </div>
+
+  <details id="rulesBox">
+    <summary>Правила боя и эффекты клеток</summary>
+    <div class="rules">
+      <p><b>Ход скелета.</b></p>
+      <ul>
+        <li>Приложение заранее показывает <b>намерение врага</b>: что он сделает после этого хода.</li>
+        <li>Ходящий бросает <b>5 из 6 кубиков</b>: свой и чужие. Один кубик отдыхает (до броска можно выбрать какой, нажав на него).</li>
+        <li><b>1 переброс</b> любых кубиков. Ром −1 — ещё один переброс.</li>
+        <li>Выберите кубики и нажмите станцию «Борта». Каждая станция работает раз в ход, каждый кубик идёт на одну станцию.</li>
+        <li><b>Одна станция бьёт одну клетку</b> врага (если на станции не сказано иначе). Лишний урон пропадает.</li>
+        <li>«Конец хода» — враг выполняет намерение. Когда сходили все, кончается круг.</li>
+      </ul>
+      <p><b>Помощь команды.</b></p>
+      <ul>
+        <li><b>Рука мастера:</b> если на станции лежит кубик скелета с навыком этой станции, удар +1 (Картечь: +1 цель, Абордаж: +1 Сокровище).</li>
+        <li><b>Подставь плечо:</b> в чужой ход скелет может потратить Удачу и перебросить кубик своего цвета (раз за круг).</li>
+        <li><b>Ром −1:</b> ещё переброс или Корпус +1 (ремонт раз в ход).</li>
+      </ul>
+      <p><b>Урон по клетке.</b> «Порог»: у клетки прочность N, удар закрывает её, если он не меньше N, иначе пропадает (так закрываются «сердца 2/3» в Спящих богах). «Копится»: прочность убывает от каждого удара.</p>
+      <p><b>Перед боем:</b> Вступить в бой, Откупиться (Сокровища с каждого скелета) или Сбежать (сложная проверка Мозжечка: чисто / с потерями / настигли и бой; Ропот +1 в любом случае).</p>
+      <p><b>Победа:</b> закрыты все Жизни. <b>Поражение:</b> Корпус 0. <b>Ничья:</b> враг сбежал (Мачта). Добыча выдаётся сразу, как только её клетку закрыли.</p>
+      <p><b>Клетки врага.</b></p>
+      <ul>
+        <li><b>Жизнь</b> — закройте все, чтобы победить.</li>
+        <li><b>Урон +N</b> — пока открыта, залпы врага сильнее.</li>
+        <li><b>Добыча N</b> — закрыли: Сокровища +N каждому.</li>
+        <li><b>Броня</b> — пока открыта, соседние по сторонам клетки бить нельзя (Главный калибр бьёт сквозь неё).</li>
+        <li><b>Щит</b> — пока открыт, все удары слабее на 1 (кроме Главного калибра).</li>
+        <li><b>Летучая</b> — Таран и Полный вперёд не достают. <b>Вёрткая</b> — только Таран и Полный вперёд.</li>
+        <li><b>Цвет</b> — бить можно только станцией, где лежит кубик этого скелета.</li>
+        <li><b>Цепь</b> — клетки цепи надо закрыть в одном ходу, иначе в конце хода они снова откроются.</li>
+        <li><b>Шипы</b> — кто закрыл, Корпус −1.</li>
+        <li><b>Пожар</b> — пока открыта, в конце круга Корпус −1.</li>
+        <li><b>Регенерация</b> — пока открыта, в конце круга одна закрытая Жизнь снова открывается.</li>
+        <li><b>Святая вода</b> — пока открыта, после залпа ходящий получает Благословение (2 кубика, худший).</li>
+        <li><b>Мачта</b> — пока открыта, в конце указанного круга враг уходит: ничья.</li>
+        <li><b>Ярость</b> — скрыта, пока не закрыта половина Жизней, потом это «Урон +2».</li>
+        <li><b>Слабое место</b> — закрыли: следующий удар в этом ходу +2.</li>
+        <li><b>Пленник</b> — закрыли: Команда +1.</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="cols">
+    <section class="pane" id="appPane" aria-label="Экран приложения"></section>
+    <section class="pane" id="tablePane" aria-label="Стол: корабль и кубики"></section>
+  </div>
+</div>
+
+<script>
+(function(){
+var DATA=/*DATA*/{"crew":[{"n":"Рыжая","c":"#C24E25","sk":"Шмаляние"},{"n":"Кальмар","c":"#0F6E56","sk":"Кальций"},{"n":"Бородач","c":"#A8680F","sk":"Мозжечок"},{"n":"Шкипер","c":"#534AB7","sk":"Мормышка"},{"n":"Щёголь","c":"#993556","sk":"Понты"},{"n":"Нюхач","c":"#185FA5","sk":"Вездесуй"}],"stations":[{"id":"gun","n":"Пушки","c":"pair","cn":"пара","sk":"Шмаляние","t":"shoot","p":1,"e":"удар 1"},{"id":"ram","n":"Таран","c":"run3","cn":"3 подряд","sk":"Кальций","t":"ram","p":2,"e":"удар 2"},{"id":"vol","n":"Залп","c":"three","cn":"тройка","sk":"Шмаляние","t":"shoot","p":3,"e":"удар 3"},{"id":"shot","n":"Картечь","c":"twopair","cn":"две пары","sk":"Мормышка","t":"shoot","p":1,"multi":2,"e":"по 1 урону в 2 разные клетки"},{"id":"fwd","n":"Полный вперёд","c":"run4","cn":"4 подряд","sk":"Кальций","t":"ram","p":4,"e":"удар 4"},{"id":"big","n":"Главный калибр","c":"four","cn":"каре","sk":"Мозжечок","t":"shoot","p":5,"pierce":1,"e":"удар 5 сквозь Броню и Щит"},{"id":"brd","n":"Абордаж","c":"full","cn":"фулл-хаус","sk":"Понты","t":"board","p":0,"e":"закрыть Добычу или Пленника; ходящему Сокровище +1"},{"id":"man","n":"Манёвр","c":"run5","cn":"5 подряд","sk":"Вездесуй","t":"man","p":0,"e":"враг пропускает намерение"},{"id":"cur","n":"Проклятие предков","c":"five","cn":"покер","sk":"","t":"cur","p":0,"e":"закрыть любую Жизнь"}],"kinds":{"heart":["Жизнь","k-heart","Закройте все Жизни — победа."],"dmg":["Урон +N","k-dmg","Пока открыта, каждый залп врага сильнее на N."],"loot":["Добыча N","k-loot","Закрыли — сразу Сокровища +N каждому скелету (даже если бой потом проигран)."],"armor":["Броня","k-def","Пока открыта, соседние по сторонам клетки бить нельзя. Главный калибр бьёт сквозь неё."],"shield":["Щит","k-def","Пока открыт, каждый удар по врагу слабее на 1 (Главный калибр не ослабляется)."],"fire":["Пожар","k-thr","Пока открыта, в конце каждого круга Корпус −1."],"regen":["Регенерация","k-thr","Пока открыта, в конце круга одна закрытая Жизнь снова открывается."],"holy":["Святая вода","k-thr","Пока открыта, после залпа ходящий получает метку Благословение."],"mast":["Мачта","k-thr","Пока открыта, в конце указанного круга враг уходит: ничья."],"weak":["Слабое место","k-rew","Закрыли — следующий удар в этом ходу +2."],"prisoner":["Пленник","k-rew","Закрыли — Команда +1."]},"props":{"fly":["Летучая","Таран и Полный вперёд её не достают."],"dodge":["Вёрткая","Бить можно только Тараном или Полным вперёд."],"chain":["Цепь","Все клетки цепи надо закрыть в одном ходу, иначе в конце хода они снова открываются."],"thorns":["Шипы","Кто закрыл клетку, тот получает Корпус −1."],"color":["Цвет","Бить можно только станцией, где лежит кубик указанного скелета."],"hidden":["Ярость (скрытая)","Скрыта, пока не закрыта половина Жизней врага; потом действует как обычная клетка."]},"intents":{"volley":["Залп","Корпус −(база + все открытые «Урон +»)."],"dive":["Пике","Залп ×2."],"charge":["Заряд","Счётчик +1; на 3 — мощный удар по Корпусу, счётчик в ноль."],"board":["Абордаж","Команда −1."],"tax":["Налог","У каждого скелета Сокровища −1."],"repair":["Ремонт","Одна закрытая клетка (не Жизнь) снова открывается."],"summon":["Подкрепление","На пустом месте появляется новая Жизнь 1 (мест нет — Залп)."]},"enemies":[{"id":"gull","n":"Чайка-налётчица","cls":"слабый","base":0,"chargeDmg":3,"bribe":1,"intents":[["volley",4],["charge",1]],"cells":[{"s":0,"n":"Клюв","k":"dmg","v":1,"amt":1},{"s":1,"n":"Голова","k":"heart","v":1},{"s":2,"n":"Перья","k":"armor","v":2},{"s":3,"n":"Хвост","k":"fire","v":1},{"s":4,"n":"Когти","k":"dmg","v":1,"amt":1},{"s":5,"n":"Грудь","k":"heart","v":2},{"s":6,"n":"Крыло","k":"heart","v":1,"fly":1},{"s":10,"n":"Зоб","k":"loot","v":1,"amt":2}]},{"id":"galley","n":"Налоговая галера","cls":"обычный","base":0,"chargeDmg":5,"bribe":2,"intents":[["volley",4],["board",2],["tax",2],["repair",2]],"cells":[{"s":0,"n":"Вёсла-скрепки","k":"dmg","v":2,"amt":1},{"s":1,"n":"Бланки","k":"shield","v":2},{"s":2,"n":"Пушка","k":"dmg","v":2,"amt":1},{"s":4,"n":"Канцелярия","k":"heart","v":2},{"s":5,"n":"Печать","k":"heart","v":3,"thorns":1},{"s":6,"n":"Инспектор","k":"heart","v":3},{"s":7,"n":"Должник","k":"prisoner","v":2,"amt":1},{"s":8,"n":"Касса","k":"loot","v":2,"amt":3},{"s":9,"n":"Дырявый трюм","k":"weak","v":1},{"s":10,"n":"Писарь","k":"heart","v":2,"dodge":1}]},{"id":"queen","n":"Королева Ржавчина","cls":"сильный","base":0,"chargeDmg":4,"bribe":3,"intents":[["volley",4],["charge",2],["repair",2],["board",2]],"cells":[{"s":0,"n":"Ржавые пушки","k":"dmg","v":2,"amt":1},{"s":1,"n":"Панцирь","k":"armor","v":2},{"s":2,"n":"Носовое орудие","k":"dmg","v":2,"amt":1},{"s":3,"n":"Мачта","k":"mast","v":3,"esc":3},{"s":5,"n":"Корона","k":"heart","v":3},{"s":6,"n":"Маховик","k":"heart","v":3},{"s":7,"n":"Свечи","k":"holy","v":2},{"s":8,"n":"Сундук","k":"loot","v":3,"amt":5},{"s":9,"n":"Скрип","k":"dmg","v":2,"amt":1,"hidden":1},{"s":10,"n":"Якорь левый","k":"heart","v":2,"chain":"a"},{"s":11,"n":"Якорь правый","k":"heart","v":2,"chain":"a"}]},{"id":"kraken","n":"Кракен-ростовщик","cls":"особый","base":1,"chargeDmg":5,"bribe":2,"intents":[["volley",3],["summon",2],["tax",2],["board",1]],"cells":[{"s":0,"n":"Щупальце","k":"dmg","v":2,"amt":1,"thorns":1},{"s":1,"n":"Ус","k":"heart","v":2,"dodge":1},{"s":2,"n":"Монокль","k":"weak","v":1},{"s":3,"n":"Щупальце","k":"dmg","v":2,"amt":1,"thorns":1},{"s":4,"n":"Присоски","k":"regen","v":2},{"s":5,"n":"Глаз","k":"heart","v":3,"color":0},{"s":6,"n":"Клюв","k":"heart","v":3},{"s":9,"n":"Чернила","k":"holy","v":2},{"s":10,"n":"Долговая книга","k":"loot","v":2,"amt":4}]}],"start":{"hull":8,"rum":3,"team":5,"luck":1,"loot":3},"escape":{"ok":10,"loss":7,"hull_loss":2,"team_loss":1,"murmur":1},"prebattle":{"bribe":"Откупиться: каждый скелет платит столько Сокровищ, сколько указано у врага (можно скинуться). Боя нет, награды нет.","escape":"Сбежать: сложная проверка Мозжечка одного скелета (d6 + навык). 10+ — сбежали (Ропот +1). 7–9 — сбежали с потерями: Корпус −2 или Команда −1 на выбор, Ропот +1. ≤6 — вас настигли: потери как выше, Ропот +1, и начинается бой.","fight":"Вступить в бой."}}/*END*/;
+var CREW=DATA.crew,ST=DATA.stations,ENEMIES=DATA.enemies,START=DATA.start,ESC=DATA.escape,KIND={},IT={};
+Object.keys(DATA.kinds).forEach(function(k){KIND[k]=[DATA.kinds[k][0].replace(' +N','').replace(' N',''),DATA.kinds[k][1]]});
+Object.keys(DATA.intents).forEach(function(k){IT[k]=DATA.intents[k][0]+': '+DATA.intents[k][1]});
+var SHIPC='#5F5E5A';
+var S=null, U=[], campaign=null;
+window.mountCampaign = function(config){
+  campaign=config;
+  document.querySelector('.top').hidden=true;
+  document.querySelector('.top').style.display='none';
+  $('selEnemy').value=config.enemy;
+  $('selN').value=config.players.length;
+  if(config.saved){ S=JSON.parse(config.saved); render(); }
+  else newBattle();
+};
+var $=function(id){return document.getElementById(id)};
+function rnd(n){return 1+Math.floor(Math.random()*n)}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function snap(){U.push(JSON.stringify(S));if(U.length>100)U.shift()}
+function undo(){if(U.length){S=JSON.parse(U.pop());render()}}
+function log(t){S.log.unshift('Круг '+S.round+': '+t);if(S.log.length>60)S.log.pop()}
+function enemy(){return ENEMIES.filter(function(e){return e.id==S.eid})[0]}
+function crewOf(d){return d.o>=0?S.crew[d.o]:null}
+function dieColor(d){return d.o>=0?S.crew[d.o].c:SHIPC}
+function dieName(d){return d.o>=0?S.crew[d.o].n:'корабль'}
+function cellAt(slot){for(var i=0;i<S.cells.length;i++)if(S.cells[i].s==slot)return S.cells[i];return null}
+function openCells(k){return S.cells.filter(function(c){return !c.closed&&!c.hidden&&(!k||c.k==k)})}
+function hearts(){return S.cells.filter(function(c){return c.k=='heart'&&!c.hidden})}
+function volleyDmg(){var d=enemy().base;openCells('dmg').forEach(function(c){d+=c.amt||1});return d}
+
+function newBattle(){
+  var n=+$('selN').value, eid=$('selEnemy').value, e=ENEMIES.filter(function(x){return x.id==eid})[0];
+  S={eid:eid,n:n,mode:$('selMode').value,hull:START.hull,rum:START.rum,team:START.team,murmur:0,round:1,turn:0,charge:0,status:'pre',log:[],manual:false,t:null,
+     crew:CREW.slice(0,n).map(function(c){return {n:c.n,c:c.c,sk:c.sk,luck:START.luck,luckUsed:false,loot:START.loot,bless:false}}),
+     dice:[],cells:e.cells.map(function(c){var x=JSON.parse(JSON.stringify(c));x.hp=c.v;x.closed=false;x.hidden=!!c.hidden;return x})};
+  for(var i=0;i<6;i++)S.dice.push({o:i<n?i:-1});
+  U=[];
+  S.hull=7; S.rum=5; S.team=6;
+  if(campaign){
+    S.hull=campaign.ship.H; S.team=campaign.ship.C; S.rum=campaign.ship.R; S.murmur=campaign.ship.M;
+    S.crew.forEach(function(c,i){c.n=campaign.players[i].name; c.startLoot=c.loot; c.startLuck=c.luck});
+  }
+  log('На горизонте: '+e.n+'. Корпус '+S.hull+', Ром '+S.rum+', Команда '+S.team+'. Решите: бой, откуп или побег.');
+  render();
+}
+function startFight(){snap();S.status='play';log('Вступаем в бой.');startTurn();render()}
+function totalLoot(){var s=0;S.crew.forEach(function(c){s+=c.loot});return s}
+function bribe(){
+  var cost=enemy().bribe*S.n;if(totalLoot()<cost)return;snap();
+  for(var k=0;k<cost;k++){var r=S.crew.slice().sort(function(a,b){return b.loot-a.loot})[0];r.loot--}
+  S.status='bribed';log('Откупились: '+cost+' Сокровищ на всех. Боя нет, награды нет.');render();
+}
+function escapeTry(){
+  var who=S.crew[+$('selEsc').value],mv=$('selEscVal').value,d=mv?+mv:rnd(6);
+  var sk=(who.sk=='Мозжечок'?3:0)+1,tot=d+sk;
+  snap();S.murmur+=ESC.murmur;
+  var head=who.n+' пытается уйти: d6 '+d+' + Мозжечок '+(sk-1)+' + 1 (прокачка) = '+tot+'. Ропот +'+ESC.murmur+'.';
+  if(tot>=ESC.ok){S.status='escaped';log(head+' Сбежали чисто.')}
+  else{S.pendingLoss=tot>=ESC.loss?'escape':'caught';S.status='loss';log(head+(S.pendingLoss=='escape'?' Сбежали с потерями.':' Вас настигли!'))}
+  render();
+}
+function takeLoss(k){
+  snap();
+  if(k=='hull'){S.hull-=ESC.hull_loss;log('Потери: Корпус −'+ESC.hull_loss+'.')}else{S.team=Math.max(0,S.team-ESC.team_loss);log('Потери: Команда −'+ESC.team_loss+'.')}
+  var c=S.pendingLoss;S.pendingLoss=null;
+  if(S.hull<=0){S.status='lose';log('Корпус 0.')}
+  else if(c=='caught'){S.status='play';log('Бой начинается.');startTurn()}
+  else S.status='escaped';
+  render();
+}
+function pickIntent(){
+  var e=enemy(),tot=0;e.intents.forEach(function(x){tot+=x[1]});var r=Math.random()*tot;
+  for(var i=0;i<e.intents.length;i++){r-=e.intents[i][1];if(r<0)return e.intents[i][0]}
+  return 'volley';
+}
+function startTurn(){
+  var rest=S.n<6?5:(S.turn+S.n-1)%S.n;
+  S.t={vals:[null,null,null,null,null,null],rest:rest,rolled:false,rerolls:1,sel:[],used:[],st:[],pend:null,weak:0,repaired:false,closed:[],skip:false};
+  S.intent=pickIntent();
+  log('Ход: '+S.crew[S.turn].n+'. Враг готовит: '+intentText()+'.');
+}
+function intentText(){
+  var k=S.intent,e=enemy();
+  if(k=='volley')return 'Залп '+volleyDmg();
+  if(k=='dive')return 'Пике: залп ×2 ('+volleyDmg()*2+')';
+  if(k=='charge')return 'Заряд '+(S.charge+1)+'/3'+(S.charge+1>=3?' — удар '+e.chargeDmg+'!':' (на 3: Корпус −'+e.chargeDmg+')');
+  return IT[k];
+}
+function active(){var a=[];for(var i=0;i<6;i++)if(i!=S.t.rest)a.push(i);return a}
+function allSet(){return active().every(function(i){return S.t.vals[i]!=null})}
+
+function roll(){snap();active().forEach(function(i){S.t.vals[i]=rnd(6)});S.t.rolled=true;log(S.crew[S.turn].n+' бросает: '+active().map(function(i){return S.t.vals[i]}).join(', ')+'.');render()}
+function reroll(){
+  var sel=S.t.sel.filter(function(i){return S.t.used.indexOf(i)<0});if(!sel.length||S.t.rerolls<1)return;
+  snap();S.t.rerolls--;
+  var before=sel.map(function(i){return S.t.vals[i]});
+  sel.forEach(function(i){S.t.vals[i]=S.manual?null:rnd(6)});
+  if(S.manual){S.t.rolled=false;log('Переброс: впишите новые значения.')}
+  else log('Переброс '+before.join(', ')+' → '+sel.map(function(i){return S.t.vals[i]}).join(', ')+'.');
+  S.t.sel=[];render();
+}
+function buyReroll(){if(S.rum<1)return;snap();S.rum--;S.t.rerolls++;log('Ром −1: ещё один переброс.');render()}
+function buyRepair(){if(S.rum<1||S.t.repaired||S.hull>=10)return;snap();S.rum--;S.hull++;S.t.repaired=true;log('Ром −1: Корпус +1 ('+S.hull+').');render()}
+function luckReroll(i){
+  var cr=crewOf(S.dice[i]);if(!cr||cr.luck<1||cr.luckUsed)return;
+  snap();cr.luck--;cr.luckUsed=true;var b=S.t.vals[i];
+  if(S.manual){S.t.vals[i]=null;S.t.rolled=false;log(cr.n+' тратит Удачу: впишите новое значение своего кубика.')}
+  else{S.t.vals[i]=rnd(6);log(cr.n+' подставляет плечо: Удача −1, свой кубик '+b+' → '+S.t.vals[i]+'.')}
+  render();
+}
+function setVal(i,v){snap();S.t.vals[i]=v?+v:null;S.t.rolled=allSet();if(S.t.rolled&&v)log('Вписано: '+dieName(S.dice[i])+' = '+v+'.');render()}
+function tapDie(i){
+  if(S.status!='play'||S.t.pend)return;
+  if(!S.t.rolled&&!S.manual){if(i!=S.turn&&S.dice[i].o!=S.turn){S.t.rest=i;render()}return}
+  if(i==S.t.rest){if(!S.t.vals.some(function(v){return v!=null})&&S.dice[i].o!=S.turn){S.t.rest=i}return}
+  if(S.t.used.indexOf(i)>=0)return;
+  var k=S.t.sel.indexOf(i);if(k>=0)S.t.sel.splice(k,1);else S.t.sel.push(i);render();
+}
+function restTap(i){if(S.t.vals.some(function(v){return v!=null}))return;if(S.dice[i].o==S.turn)return;S.t.rest=i;render()}
+
+function combo(c,v){
+  var s=v.slice().sort(),n=s.length,cnt={};s.forEach(function(x){cnt[x]=(cnt[x]||0)+1});
+  var cs=Object.keys(cnt).map(function(k){return cnt[k]}).sort();
+  var run=function(k){if(n!=k)return false;for(var i=1;i<n;i++)if(s[i]!=s[i-1]+1)return false;return true};
+  switch(c){
+    case 'pair':return n==2&&cs.length==1;
+    case 'three':return n==3&&cs.length==1;
+    case 'four':return n==4&&cs.length==1;
+    case 'five':return n==5&&cs.length==1;
+    case 'twopair':return n==4&&cs.join()=='2,2';
+    case 'full':return n==5&&cs.join()=='2,3';
+    case 'run3':return run(3);case 'run4':return run(4);case 'run5':return run(5);
+  }
+  return false;
+}
+function selVals(){return S.t.sel.map(function(i){return S.t.vals[i]})}
+function stationReady(st){
+  if(S.status!='play'||!S.t.rolled||S.t.pend||S.t.st.indexOf(st.id)>=0)return false;
+  if(!S.t.sel.length||S.t.sel.some(function(i){return S.t.vals[i]==null}))return false;
+  return combo(st.c,selVals());
+}
+function useStation(id){
+  var st=ST.filter(function(x){return x.id==id})[0];if(!stationReady(st))return;
+  snap();
+  var dice=S.t.sel.slice();
+  var master=!!st.sk&&dice.some(function(i){var c=crewOf(S.dice[i]);return c&&c.sk==st.sk});
+  S.t.used=S.t.used.concat(dice);S.t.st.push(id);S.t.sel=[];
+  var owners=dice.map(function(i){return S.dice[i].o});
+  var who=S.crew[S.turn].n;
+  if(st.t=='man'){S.t.skip=true;log(who+': Манёвр! Враг пропустит намерение.');render();return}
+  var p={st:id,owners:owners,master:master,str:(st.p||0)+(master&&st.p?1:0),left:st.multi?st.multi+(master?1:0):1,hit:[]};
+  S.t.pend=p;
+  log(who+': '+st.n+(master?' (рука мастера +1)':'')+'. Выберите клетку.');
+  render();
+}
+function armored(cell){
+  var r=Math.floor(cell.s/4),c=cell.s%4;
+  return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].some(function(q){if(q[0]<0||q[0]>2||q[1]<0||q[1]>3)return false;var x=cellAt(q[0]*4+q[1]);return x&&x.k=='armor'&&!x.closed&&!x.hidden});
+}
+function targetOk(cell){
+  var p=S.t.pend;if(!p||cell.closed||cell.hidden)return false;
+  if(p.hit.indexOf(cell.s)>=0)return false;
+  var st=ST.filter(function(x){return x.id==p.st})[0];
+  if(st.t=='cur')return cell.k=='heart';
+  if(st.t=='board')return cell.k=='loot'||cell.k=='prisoner';
+  if(cell.fly&&st.t=='ram')return false;
+  if(cell.dodge&&st.t!='ram')return false;
+  if(cell.color!=null&&cell.color<S.n&&p.owners.indexOf(cell.color)<0)return false;
+  if(cell.k!='armor'&&!st.pierce&&armored(cell))return false;
+  return true;
+}
+function whyNot(cell){
+  var p=S.t.pend;if(!p)return '';var st=ST.filter(function(x){return x.id==p.st})[0];
+  if(cell.closed)return 'уже закрыта';
+  if(st.t=='cur')return 'нужна Жизнь';
+  if(st.t=='board')return 'только Добыча или Пленник';
+  if(cell.fly&&st.t=='ram')return 'летучая: тараном не достать';
+  if(cell.dodge&&st.t!='ram')return 'вёрткая: только Таран';
+  if(cell.color!=null&&cell.color<S.n&&p.owners.indexOf(cell.color)<0)return 'нужен кубик: '+S.crew[cell.color].n;
+  if(armored(cell))return 'рядом Броня';
+  return '';
+}
+function hitCell(slot){
+  var cell=cellAt(slot);if(!cell)return;
+  if(!targetOk(cell)){var w=whyNot(cell);if(w){S.lastWarn=cell.n+': '+w;render()}return}
+  snap();S.lastWarn='';
+  var p=S.t.pend,st=ST.filter(function(x){return x.id==p.st})[0];
+  if(st.t=='cur'||st.t=='board'){closeCell(cell,st);}
+  else{
+    var eff=(st.multi?1:p.str)+S.t.weak;
+    if(S.t.weak){S.t.weak=0}
+    var sh=openCells('shield').length>0&&!st.pierce;
+    if(sh)eff=Math.max(0,eff-1);
+    if(S.mode=='th'){
+      if(eff>=cell.v)closeCell(cell,st,eff);
+      else log(st.n+' по клетке «'+cell.n+'»: удар '+eff+(sh?' (Щит −1)':'')+' меньше прочности '+cell.v+', пропал.');
+    }else{
+      cell.hp-=eff;
+      if(cell.hp<=0)closeCell(cell,st,eff);
+      else log(st.n+' по клетке «'+cell.n+'»: −'+eff+(sh?' (Щит −1)':'')+', осталось '+cell.hp+'/'+cell.v+'.');
+    }
+  }
+  p.hit.push(slot);p.left--;
+  if(p.left<=0)S.t.pend=null;
+  checkEnd();render();
+}
+function skipTargets(){if(!S.t.pend)return;snap();log('Оставшиеся цели пропущены.');S.t.pend=null;render()}
+function closeCell(cell,st,eff){
+  cell.closed=true;cell.hp=0;S.t.closed.push(cell.s);
+  var who=S.crew[S.turn];
+  log((st?st.n:'')+' закрывает «'+cell.n+'»'+(eff?' (удар '+eff+')':'')+'.');
+  if(cell.k=='loot'){S.crew.forEach(function(c){c.loot+=cell.amt});log('Добыча: Сокровища +'+cell.amt+' каждому.')}
+  if(cell.k=='prisoner'){S.team=Math.min(10,S.team+(cell.amt||1));log('Пленник освобождён: Команда +1.')}
+  if(cell.k=='weak'){S.t.weak+=2;log('Слабое место: следующий удар в этом ходу +2.')}
+  if(cell.thorns){S.hull--;log('Шипы: Корпус −1 ('+S.hull+').')}
+  if(st&&st.t=='board'){var b=1+(S.t.pend&&S.t.pend.master?1:0);who.loot+=b;log(who.n+': Сокровища +'+b+'.')}
+  var h=hearts(),cl=h.filter(function(c){return c.closed}).length;
+  S.cells.forEach(function(c){if(c.hidden&&cl*2>=h.length){c.hidden=false;log('Ярость! Открылась клетка «'+c.n+'».')}});
+}
+function checkEnd(){
+  if(S.status!='play')return;
+  if(hearts().every(function(c){return c.closed})){S.status='win';log('Победа! Все Жизни врага закрыты.');return}
+  if(S.hull<=0){S.status='lose';log('Поражение: Корпус 0.')}
+}
+function endTurn(){
+  if(S.status!='play')return;
+  snap();
+  var who=S.crew[S.turn];
+  var chains={};S.cells.forEach(function(c){if(c.chain){(chains[c.chain]=chains[c.chain]||[]).push(c)}});
+  Object.keys(chains).forEach(function(k){var g=chains[k],cl=g.filter(function(c){return c.closed});
+    if(cl.length&&cl.length<g.length){cl.forEach(function(c){c.closed=false;c.hp=c.v});log('Цепь: закрыта не вся, клетки снова открылись.')}});
+  S.t.pend=null;
+  checkEnd();
+  if(S.status=='play'){
+    if(S.t.skip)log('Враг пропускает намерение (Манёвр).');
+    else doIntent(who);
+    checkEnd();
+  }
+  if(S.status=='play'){
+    S.turn++;
+    if(S.turn>=S.n)endRound();
+    if(S.status=='play')startTurn();
+  }
+  render();
+}
+function doIntent(who){
+  var k=S.intent,e=enemy();
+  if(k=='volley'||k=='dive'){var d=volleyDmg()*(k=='dive'?2:1);S.hull-=d;log('Враг: '+(k=='dive'?'Пике, ':'')+'залп '+d+'. Корпус '+S.hull+'.');
+    if(openCells('holy').length){who.bless=true;log(who.n+' получает Благословение (Святая вода).')}}
+  else if(k=='charge'){S.charge++;if(S.charge>=3){S.hull-=e.chargeDmg;S.charge=0;log('Враг разряжает Заряд: Корпус −'+e.chargeDmg+' ('+S.hull+').')}else log('Враг копит Заряд: '+S.charge+'/3.')}
+  else if(k=='board'){S.team=Math.max(0,S.team-1);log('Абордаж врага: Команда −1 ('+S.team+').')}
+  else if(k=='tax'){S.crew.forEach(function(c){c.loot=Math.max(0,c.loot-1)});log('Налог: у каждого Сокровища −1.')}
+  else if(k=='repair'){var cl=S.cells.filter(function(c){return c.closed&&c.k!='heart'});
+    if(cl.length){var c=cl[Math.floor(Math.random()*cl.length)];c.closed=false;c.hp=c.v;log('Враг чинит «'+c.n+'»: клетка снова открыта.')}else log('Враг пытался чиниться, но чинить нечего.')}
+  else if(k=='summon'){var free=[];for(var s=0;s<12;s++)if(!cellAt(s))free.push(s);
+    if(free.length){var sl=free[Math.floor(Math.random()*free.length)];S.cells.push({s:sl,n:'Новое щупальце',k:'heart',v:1,hp:1,closed:false});log('Подкрепление: новая Жизнь 1.')}
+    else{var d2=volleyDmg();S.hull-=d2;log('Места нет, враг стреляет: '+d2+'. Корпус '+S.hull+'.')}}
+}
+function endRound(){
+  var f=openCells('fire').length;if(f){S.hull-=f;log('Пожар: Корпус −'+f+' ('+S.hull+').')}
+  if(openCells('regen').length){var cl=hearts().filter(function(c){return c.closed});if(cl.length){cl[0].closed=false;cl[0].hp=cl[0].v;log('Регенерация: «'+cl[0].n+'» снова открыта.')}}
+  var m=openCells('mast').filter(function(c){return S.round>=c.esc});
+  if(m.length&&S.hull>0){S.status='draw';log('Мачта цела: враг уходит. Ничья.')}
+  S.crew.forEach(function(c){c.luckUsed=false});
+  S.round++;S.turn=0;
+  checkEnd();
+}
+
+/* ---------- отрисовка ---------- */
+function cellHtml(slot){
+  var c=cellAt(slot);
+  if(!c)return '<div class="cell empty">·</div>';
+  if(c.hidden)return '<div class="cell hid"><span class="nm">?</span><span class="bd">скрыта</span></div>';
+  var kk=KIND[c.k],lab=kk[0];
+  if(c.k=='dmg')lab='Урон +'+(c.amt||1);
+  if(c.k=='loot')lab='Добыча +'+c.amt;
+  if(c.k=='mast')lab='Мачта: уйдёт после круга '+c.esc;
+  var pr=S.mode=='th'?'прочность '+c.v:'прочность '+(c.closed?0:c.hp)+'/'+c.v;
+  var b=[];if(c.fly)b.push('летучая');if(c.dodge)b.push('вёрткая');if(c.chain)b.push('цепь');if(c.thorns)b.push('шипы');
+  if(c.color!=null&&c.color<S.n)b.push('цвет: '+S.crew[c.color].n);
+  if(!c.closed&&c.k!='armor'&&armored(c))b.push('под Бронёй');
+  var p=S.t&&S.t.pend,ok=p&&targetOk(c);
+  var cls='cell '+kk[1]+(c.closed?' closed':'')+(ok?' tgt':'')+(p&&!ok&&!c.closed?' no':'');
+  return '<div class="'+cls+'" data-slot="'+slot+'"'+(ok?' role="button" tabindex="0"':'')+'><span class="nm">'+esc(c.n)+'</span><span>'+lab+'</span><span class="pr">'+pr+'</span>'+(b.length?'<span class="bd">'+b.join(' · ')+'</span>':'')+'</div>';
+}
+function render(){
+  if(campaign && (S.hull<=0 || S.team<=0 || S.murmur>=S.team)) S.status='lose';
+  var e=enemy(),t=S.t,who=S.crew[S.turn];
+  // приложение
+  var h='<div class="tag">Экран приложения</div>';
+  h+='<div class="ehead"><h2>'+esc(e.n)+'</h2><span class="hint">'+esc(e.cls)+' · база залпа '+e.base+'</span></div>';
+  if(S.status=='play'){
+    h+='<div class="intent'+(t.skip?' skip':'')+'"><div class="tag">'+(t.skip?'Намерение сорвано Манёвром':'После хода '+esc(who.n)+' враг сделает')+'</div><b>'+esc(intentText())+'</b></div>';
+  }else if(S.status=='pre'){
+    var cost=e.bribe*S.n;
+    if(campaign){
+      h+='<details><summary>Сверить экипаж с листами скелетов</summary>'+S.crew.map(function(c,i){
+        var skills=CREW.map(function(member){return member.sk});
+        return '<p><b>'+esc(c.n)+'</b> <label>Мастерство <select data-skill="'+i+'">'+skills.map(function(skill){return '<option'+(c.sk===skill?' selected':'')+'>'+esc(skill)+'</option>'}).join('')+'</select></label> '+
+          '<label>Сокровища <input type="number" min="0" data-resource="loot" data-member="'+i+'" value="'+c.loot+'"></label> '+
+          '<label>Удача <input type="number" min="0" data-resource="luck" data-member="'+i+'" value="'+c.luck+'"></label></p>';
+      }).join('')+'</details>';
+    }
+    h+='<div class="intent"><div class="tag">Перед боем</div><b>Что делаем?</b>'+
+      '<div class="row" style="margin-top:8px"><button class="main" data-act="fight">Вступить в бой</button>'+
+      '<button data-act="bribe"'+(totalLoot()>=cost?'':' disabled')+'>Откупиться: '+e.bribe+' Сокр. с каждого (всего '+cost+')</button></div>'+
+      '<div class="row" style="margin-top:8px"><label class="f">Кто ведёт побег<select id="selEsc">'+S.crew.map(function(c,i){return '<option value="'+i+'"'+(c.sk=='Мозжечок'?' selected':'')+'>'+esc(c.n)+' · Мозжечок '+(c.sk=='Мозжечок'?3:0)+'</option>'}).join('')+'</select></label>'+
+      '<label class="f">Свой d6<select id="selEscVal"><option value="">бросить тут</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>'+
+      '<button data-act="escape">Сбежать (сложная проверка)</button></div>'+
+      '<div class="hint" style="margin-top:6px">Побег: d6 + Мозжечок + 1 за прокачку. '+ESC.ok+'+ — ушли; '+ESC.loss+'–'+(ESC.ok-1)+' — ушли с потерями; ≤'+(ESC.loss-1)+' — настигли (потери и бой). Ропот +'+ESC.murmur+' в любом случае.</div></div>';
+  }else if(S.status=='loss'){
+    h+='<div class="intent"><div class="tag">'+(S.pendingLoss=='caught'?'Вас настигли':'Ушли с потерями')+'</div><b>Выберите потери</b><div class="row" style="margin-top:8px"><button class="main" data-act="lossh">Корпус −'+ESC.hull_loss+'</button><button data-act="losst">Команда −'+ESC.team_loss+'</button></div></div>';
+  }else{
+    var ttl={win:'Победа',lose:'Поражение',draw:'Ничья: враг ушёл',bribed:'Откупились',escaped:'Сбежали'}[S.status];
+    h+='<div class="end"><h2>'+ttl+'</h2><p>Круг '+S.round+', Корпус '+Math.max(0,S.hull)+', Ром '+S.rum+', Команда '+S.team+', Ропот '+S.murmur+'.</p><p>Сокровища: '+S.crew.map(function(c){return esc(c.n)+' '+c.loot}).join(', ')+'.</p><button class="main" data-act="new">'+(campaign?'Завершить встречу':'Ещё бой')+'</button></div>';
+  }
+  h+='<div class="grid">';for(var s=0;s<12;s++)h+=cellHtml(s);h+='</div>';
+  h+='<div class="hint">Залп сейчас: <b class="num">'+volleyDmg()+'</b>'+(S.charge?' · Заряд '+S.charge+'/3':'')+(openCells('shield').length?' · Щит: удары −1':'')+'</div>';
+  if(S.lastWarn)h+='<div class="hint" style="color:var(--warn)">Нельзя: '+esc(S.lastWarn)+'</div>';
+  h+='<div class="tag">Намерения врага (случайно, приложение)</div><div class="hint">'+e.intents.map(function(x){return IT[x[0]].split(':')[0]+' ×'+x[1]}).join(' · ')+'</div>';
+  h+='<div class="log" aria-live="polite">'+S.log.map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div>';
+  $('appPane').innerHTML=h;
+  // стол
+  var g='<div class="tag">Стол: буклет «Борт» и кубики</div>';
+  g+='<div class="stat"><span>Корпус <b class="num">'+Math.max(0,S.hull)+'</b>/10</span><span>Ром <b class="num">'+S.rum+'</b></span><span>Команда <b class="num">'+S.team+'</b></span><span>Ропот <b class="num">'+S.murmur+'</b></span><span>Круг <b class="num">'+S.round+'</b></span></div>';
+  g+='<div class="bar">';for(var k=1;k<=10;k++)g+='<i class="'+(k<=S.hull?'f':'')+'"></i>';g+='</div>';
+  g+='<div class="crew">'+S.crew.map(function(c,i){return '<span class="cm'+(i==S.turn&&S.status=='play'?' act':'')+'"><i class="sw" style="background:'+c.c+'"></i>'+esc(c.n)+' · '+esc(c.sk)+' 3 · Удача '+c.luck+' · Сокр. '+c.loot+(c.bless?' · Благосл.':'')+'</span>'}).join('')+'</div>';
+  if(S.status=='play'){
+    g+='<div class="row"><b>Ходит: '+esc(who.n)+'</b><span class="hint">'+(t.rolled?'Выберите кубики и нажмите станцию.':(S.manual?'Бросьте свои кубики на столе и впишите значения.':'Нажмите «Бросить». До броска можно выбрать, какой кубик отдыхает.'))+'</span></div>';
+    g+='<div class="tray">';
+    for(var i=0;i<6;i++){
+      var d=S.dice[i],col=dieColor(d),v=t.vals[i];
+      if(i==t.rest){g+='<div class="dw"><div class="die rest" style="background:'+col+'" title="Отдыхает">отдых</div><small>'+esc(dieName(d))+'</small></div>';continue}
+      var cls='die'+(t.sel.indexOf(i)>=0?' sel':'')+(t.used.indexOf(i)>=0?' used':'');
+      g+='<div class="dw"><div class="'+cls+'" style="background:'+col+'" data-die="'+i+'" role="button" tabindex="0" aria-label="Кубик '+esc(dieName(d))+' '+(v||'не брошен')+'">'+(v||'?')+'</div><small>'+esc(dieName(d))+'</small>';
+      if(S.manual&&t.used.indexOf(i)<0){g+='<select data-val="'+i+'" aria-label="Значение"><option value="">?</option>';for(var q=1;q<=6;q++)g+='<option'+(v==q?' selected':'')+'>'+q+'</option>';g+='</select>'}
+      var cr=crewOf(d);
+      if(cr&&d.o!=S.turn&&v!=null&&t.used.indexOf(i)<0&&cr.luck>0&&!cr.luckUsed)g+='<button data-luck="'+i+'" title="'+esc(cr.n)+' тратит Удачу">Удача</button>';
+      g+='</div>';
+    }
+    g+='</div>';
+    if(!t.rolled&&!S.manual&&!t.vals.some(function(v){return v!=null})){
+      g+='<div class="hint">Отдыхает: нажмите на любой чужой кубик, чтобы он отдохнул вместо этого.</div><div class="row" id="restRow">'+S.dice.map(function(d,i){return (i==t.rest||d.o==S.turn)?'':'<button data-rest="'+i+'">Отдыхает: '+esc(dieName(d))+'</button>'}).join('')+'</div>';
+    }
+    g+='<div class="row">';
+    if(!S.manual)g+='<button class="main" data-act="roll"'+(t.rolled?' disabled':'')+'>Бросить</button>';
+    g+='<button data-act="reroll"'+(t.rolled&&t.sel.length&&t.rerolls>0&&!t.pend?'':' disabled')+'>Перебросить выбранные (осталось '+t.rerolls+')</button>';
+    g+='<button data-act="rumroll"'+(S.rum>0?'':' disabled')+'>Ром −1: ещё переброс</button>';
+    g+='<button data-act="rumfix"'+(S.rum>0&&!t.repaired&&S.hull<10?'':' disabled')+'>Ром −1: Корпус +1</button>';
+    g+='</div>';
+    if(t.pend){var ps=ST.filter(function(x){return x.id==t.pend.st})[0];
+      g+='<div class="pend">'+esc(ps.n)+': '+(ps.t=='cur'?'выберите любую Жизнь':ps.t=='board'?'выберите Добычу или Пленника':ps.multi?'по 1 урону, осталось целей: '+t.pend.left:'удар '+t.pend.str)+(t.weak?' (+2 Слабое место)':'')+'. Нажмите клетку на экране приложения. <button data-act="skip">Не бить</button></div>'}
+    g+='<div class="sts">'+ST.map(function(st){var ok=stationReady(st),dn=t.st.indexOf(st.id)>=0;
+      return '<button class="st'+(ok?' ok':'')+(dn?' done':'')+'" data-st="'+st.id+'"'+(ok?'':' aria-disabled="true"')+'><b>'+st.n+'</b><span class="c">'+st.cn+(st.sk?' · '+st.sk:'')+'</span><span class="e">'+st.e+'</span></button>'}).join('')+'</div>';
+    g+='<div class="row"><button class="main" data-act="end"'+(t.pend?' disabled':'')+'>Конец хода</button><button data-act="undo"'+(U.length?'':' disabled')+'>Отменить шаг</button><label class="hint"><input type="checkbox" id="chkManual"'+(S.manual?' checked':'')+'> вписывать свои кубики вручную</label></div>';
+  }
+  $('tablePane').innerHTML=g;
+  if(campaign) campaign.save(JSON.stringify(S));
+}
+document.addEventListener('click',function(ev){
+  var el=ev.target.closest('[data-act],[data-die],[data-st],[data-slot],[data-luck],[data-rest]');if(!el)return;
+  if(el.dataset.act){var a=el.dataset.act;
+    if(a=='roll')roll();else if(a=='reroll')reroll();else if(a=='rumroll')buyReroll();else if(a=='rumfix')buyRepair();
+    else if(a=='end')endTurn();else if(a=='fight')startFight();else if(a=='bribe')bribe();else if(a=='escape')escapeTry();else if(a=='lossh')takeLoss('hull');else if(a=='losst')takeLoss('team');else if(a=='undo')undo();else if(a=='skip')skipTargets();else if(a=='new'){
+      if(campaign) campaign.finish(S); else newBattle();
+    }return}
+  if(el.dataset.die)return tapDie(+el.dataset.die);
+  if(el.dataset.st)return useStation(el.dataset.st);
+  if(el.dataset.slot)return hitCell(+el.dataset.slot);
+  if(el.dataset.luck)return luckReroll(+el.dataset.luck);
+  if(el.dataset.rest)return restTap(+el.dataset.rest);
+});
+document.addEventListener('keydown',function(ev){if((ev.key=='Enter'||ev.key==' ')&&ev.target.matches('[data-die],[data-slot]')){ev.preventDefault();ev.target.click()}});
+document.addEventListener('change',function(ev){
+  var input=ev.target;
+  if(campaign && S.status==='pre' && input.dataset.skill!==undefined){
+    S.crew[+input.dataset.skill].sk=input.value; render(); return;
+  }
+  if(campaign && S.status==='pre' && input.dataset.resource){
+    var c=S.crew[+input.dataset.member], value=Math.max(0,Math.floor(Number(input.value)||0));
+    if(input.dataset.resource==='loot') c.startLoot=c.loot=value;
+    if(input.dataset.resource==='luck') c.startLuck=c.luck=value;
+    render(); return;
+  }
+  if(ev.target.id=='chkManual'){snap();S.manual=ev.target.checked;render();return}
+  if(ev.target.dataset.val)setVal(+ev.target.dataset.val,ev.target.value);
+});
+$('selEnemy').innerHTML=ENEMIES.filter(function(e){return e.id!='kraken'}).map(function(e){return '<option value="'+e.id+'">'+e.n+' ('+({gull:'лёгкий',galley:'средний',queen:'сложный'}[e.id] || e.cls)+')</option>'}).join('');
+$('btnNew').addEventListener('click',newBattle);
+newBattle();
+})();
+</script>
