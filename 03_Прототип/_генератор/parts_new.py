@@ -6,8 +6,8 @@ from build_zine import T, R, L, C, OUT_PAD, IN_PAD, PW, PH, INK, GRAY, SERIF, SA
 from content import BETS, SHOP, CATCH
 from icons import svg_image
 
-UPG = [('Не считается!', 'провал 1-го = Цель', 1), ('Большой палец', 'переброс обоих', 2),
-       ('Поручитель', 'вернуть ставку', 2), ('Всё или ничего', 'прибыль ×2 (№1–№3)', 3),
+UPG = [('Не считается!', 'переброс 1-го провала', 1), ('Большой палец', 'переброс обоих', 2),
+       ('Поручитель', 'вернуть ставку', 2), ('Всё или ничего', 'прибыль ×2', 3),
        ('Кость в рукаве', 'переброс 1 кубика', 5)]
 
 
@@ -283,15 +283,15 @@ def port_spread(x0, y0):
     lx = x0 + OUT_PAD
     lw = PW - OUT_PAD - IN_PAD
     o.append(T(lx, sy + 6.0, 'ИГОРНЫЙ ДОМ', 8.5, weight='bold', family=SERIF, ls=0.3))
-    o.append(T(lx, sy + 9.6, 'Выбирают пришедшие; можно', 5.2, fill=GRAY))
-    o.append(T(lx, sy + 12.2, 'несколько ставок. Макс. ставка', 5.2, fill=GRAY))
-    o.append(T(lx, sy + 14.8, '2 монеты, на №4, №5 — 1.', 5.2, fill=GRAY))
+    o.append(T(lx, sy + 9.6, 'Каждый участник делает', 5.2, fill=GRAY))
+    o.append(T(lx, sy + 12.2, 'одну ставку за посещение:', 5.2, fill=GRAY))
+    o.append(T(lx, sy + 14.8, 'до 2 Сокровищ.', 5.2, fill=GRAY))
     zx = lx + 33.5
     zw = lw - 33.5
     o.append(R(zx, sy + 1.2, zw, 14.4, 1.6, 0.4, dash='1.8 1.3'))
     o.append(badge(zx + 4.4, sy + 5.2, 6, 3.3, 10))
     tx = zx + 9.0
-    for k, ln in enumerate(['2d6: 7, 11 — победа;', '2, 3, 12 — проигрыш;', 'иначе — Цель.', 'Снова 2d6: Цель —', 'победа, 7 — проигрыш.']):
+    for k, ln in enumerate(['2d6: 6, 7, 8 — проигрыш.', 'Иначе: выплата ×2.', 'Забрать или бросить ещё.', 'Каждый успех: ×3, ×4…', 'Проигрыш: выплата 0.']):
         o.append(T(tx if k > 0 or True else zx, sy + 4.4 + k * 2.45 if k < 3 else sy + 4.4 + k * 2.45 + 0.3, ln, 5.0, fill=GRAY))
     ry0 = sy + 17.0
     rh = 5.2
@@ -558,15 +558,15 @@ def port_spread(x0, y0):
     lx = x0 + OUT_PAD
     lw = PW - OUT_PAD - IN_PAD
     o.append(T(lx, sy + 6.0, 'ИГОРНЫЙ ДОМ', 8.5, weight='bold', family=SERIF, ls=0.3))
-    o.append(T(lx, sy + 9.6, 'Выбирают пришедшие; можно', 5.2, fill=GRAY))
-    o.append(T(lx, sy + 12.2, 'несколько ставок. Макс. ставка', 5.2, fill=GRAY))
-    o.append(T(lx, sy + 14.8, '2 монеты, на №4, №5 — 1.', 5.2, fill=GRAY))
+    o.append(T(lx, sy + 9.6, 'Каждый участник делает', 5.2, fill=GRAY))
+    o.append(T(lx, sy + 12.2, 'одну ставку за посещение:', 5.2, fill=GRAY))
+    o.append(T(lx, sy + 14.8, 'до 2 Сокровищ.', 5.2, fill=GRAY))
     zx = lx + 33.5
     zw = lw - 33.5
     o.append(R(zx, sy + 1.2, zw, 14.4, 1.6, 0.4, dash='1.8 1.3'))
     o.append(badge(zx + 4.4, sy + 5.2, 6, 3.3, 10))
     tx = zx + 9.0
-    for k, ln in enumerate(['2d6: 7, 11 — победа;', '2, 3, 12 — проигрыш;', 'иначе — Цель.', 'Снова 2d6: Цель —', 'победа, 7 — проигрыш.']):
+    for k, ln in enumerate(['2d6: 6, 7, 8 — проигрыш.', 'Иначе: выплата ×2.', 'Забрать или бросить ещё.', 'Каждый успех: ×3, ×4…', 'Проигрыш: выплата 0.']):
         o.append(T(tx if k > 0 or True else zx, sy + 4.4 + k * 2.45 if k < 3 else sy + 4.4 + k * 2.45 + 0.3, ln, 5.0, fill=GRAY))
     ry0 = sy + 17.0
     rh = 5.2

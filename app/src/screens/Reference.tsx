@@ -55,10 +55,9 @@ function TricksList({ d }: { d: GameData }) {
 export function CasinoRef({ d, withTricks = true }: { d: GameData; withTricks?: boolean }) {
   return (
     <div>
-      <p class="small">Крэпс: два кубика. Первый бросок 7 или 11 — победа, 2, 3 или 12 — проигрыш, иначе число становится Целью; бросайте, пока не выпадет Цель (победа) или 7 (проигрыш).</p>
-      <p class="small">{d.betRules}</p>
-      <table class="tbl"><tbody>{d.bets.map((b, i) => <tr key={b.name}><td>№{i + 1}</td><td>{b.ratio}</td><td><b>{b.name}</b><br /><span class="small">{b.text}</span></td></tr>)}</tbody></table>
-      {withTricks && <TricksList d={d} />}
+      <p>{d.betRules}</p>
+      <p class="hint">Пример. Ставка 2, выпало 9. Можно забрать 4 Сокровища. Если рискнуть снова, ещё один успех даст 6, а сумма 6, 7 или 8 оставит вас с нулём.</p>
+      {withTricks && <details><summary>Шуллерские штучки</summary><TricksList d={d} /></details>}
     </div>
   );
 }

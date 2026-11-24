@@ -36,6 +36,26 @@ describe('выбор эпизода', () => {
     }
     expect(seen.size).toBe(6);
   });
+  it.each([['sh', 80], ['f', 50]] as const)('%s выбирает тип встречи до вытягивания карты', (terrain, percent) => {
+    let g = fresh();
+    let fights = 0;
+    const cycle = new Set<string>();
+    for (let i = 0; i < 100; i++) {
+      g = E.enterCell(g, d, terrain, seq(i / 100, 0));
+      const id = g.scene!.eventId;
+      if (i < percent) {
+        expect(g.step).toBe('battle-prep');
+        expect(cycle.has(id)).toBe(false);
+        cycle.add(id);
+        if (cycle.size === Object.keys(d.battles).length) cycle.clear();
+        fights++;
+      } else {
+        expect(g.step).toBe('plan');
+        expect(d.pools[terrain]).toContain(id);
+      }
+    }
+    expect(fights).toBe(percent);
+  });
   it('особый штиль берёт эпизоды штиля, корабль может начать бой', () => {
     const g = E.enterCell(fresh(), d, 'sp', seq(0));
     expect(d.pools.s).toContain(g.scene!.eventId);

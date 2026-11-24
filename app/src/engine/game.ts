@@ -96,13 +96,19 @@ const log = (g: Game, text: string): LogEntry[] => [...g.log, { round: g.round, 
 
 /** Случайное событие из пула без повторов, пока пул не исчерпан. */
 export function drawFromPool(g: Game, d: GameData, pool: string, rng: Rng): { id: string; used: Record<string, string[]> } {
-  const all = d.pools[pool];
-  const used = g.used[pool] ?? [];
+  let all = d.pools[pool];
+  let historyKey = pool;
+  if (pool === 'sh' || pool === 'f') {
+    const battle = rng() < (pool === 'sh' ? 0.8 : 0.5);
+    all = battle ? Object.keys(d.battles) : all.filter(id => !d.battles[id]);
+    historyKey = pool + (battle ? ':battle' : ':event');
+  }
+  const used = g.used[historyKey] ?? g.used[pool] ?? [];
   let free = all.filter((x) => !used.includes(x));
   let nextUsed = used;
   if (free.length === 0) { free = all; nextUsed = []; }
   const id = free[Math.floor(rng() * free.length)];
-  return { id, used: { ...g.used, [pool]: [...nextUsed, id] } };
+  return { id, used: { ...g.used, [historyKey]: [...nextUsed, id] } };
 }
 
 function sceneFor(eventId: string, terrain: string, island: number | null, kind: Scene['kind']): Scene {
